@@ -7,16 +7,16 @@
     <language>en</language>
     <item>
       <title>NimbusGlide 1.6.6</title>
-      <description><![CDATA[<p>Fix sidebar Settings/Account font size to match other items</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 14:07:28 +0000</pubDate>
+      <description><![CDATA[<p>Fix language enforcement with NLLanguageRecognizer, fix profile sheet spacing</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 14:12:16 +0000</pubDate>
       <sparkle:version>1.6.6</sparkle:version>
       <sparkle:shortVersionString>1.6.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.6/NimbusGlide.zip"
-        length="3063655"
+        length="3072855"
         type="application/octet-stream"
-        sparkle:edSignature="vkPwt/ue5NKGojObVXWaqUVj1XMGtD7vvG5O7HeIW8GRM7QwjuaeUkyNyLCO8invMab4SoZYBNCS0eIJvVnFCQ=="
+        sparkle:edSignature="rMDvYjEXiJKawhd/IcdKV0oXgZZsfxSSm96NyP+5PyLeB+xMLjBtFXNcTImA2nvrlUnOkqtgkM+6AExjclawCg=="
       />
     </item>
   </channel>

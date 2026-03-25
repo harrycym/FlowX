@@ -180,18 +180,25 @@ private struct AddProfileView: View {
     @State private var instructions = ""
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Text("New Profile")
-                .font(.headline)
+                .font(.title3.weight(.semibold))
 
-            TextField("Name", text: $name)
-                .textFieldStyle(.roundedBorder)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Name")
+                    .font(.subheadline.weight(.medium))
+                TextField("e.g. Professional Email", text: $name)
+                    .textFieldStyle(.roundedBorder)
+            }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Instructions")
-                    .font(.subheadline)
+                    .font(.subheadline.weight(.medium))
+                Text("Tell NimbusGlide how to format your dictation with this profile.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 TextEditor(text: $instructions)
-                    .frame(height: 100)
+                    .frame(height: 120)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
                             .stroke(Color.secondary.opacity(0.2))
@@ -211,7 +218,7 @@ private struct AddProfileView: View {
                 .disabled(name.isEmpty)
             }
         }
-        .padding(20)
-        .frame(width: 380, height: 280)
+        .padding(24)
+        .frame(width: 420, height: 340)
     }
 }

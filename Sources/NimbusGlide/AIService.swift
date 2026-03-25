@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 
 class AIService {
     private let settingsManager: SettingsManager
@@ -105,12 +106,54 @@ class AIService {
 
     // MARK: - LLM Processing (via Cloudflare Worker)
 
+    // Map language display names to NLLanguage codes
+    private static let languageCodeMap: [String: NLLanguage] = [
+        "English": .english, "Spanish": .spanish, "French": .french, "German": .german,
+        "Italian": .italian, "Portuguese": .portuguese, "Dutch": .dutch, "Russian": .russian,
+        "Chinese (Simplified)": .simplifiedChinese, "Chinese (Traditional)": .traditionalChinese,
+        "Japanese": .japanese, "Korean": .korean, "Arabic": .arabic, "Hindi": .hindi,
+        "Turkish": .turkish, "Vietnamese": .vietnamese, "Thai": .thai, "Indonesian": .indonesian,
+        "Polish": .polish, "Ukrainian": .ukrainian, "Czech": .czech, "Romanian": .romanian,
+        "Swedish": .swedish, "Danish": .danish, "Norwegian": .norwegian, "Finnish": .finnish,
+        "Greek": .greek, "Hebrew": .hebrew, "Hungarian": .hungarian, "Bengali": .bengali,
+        "Tamil": .tamil, "Malay": .malay,
+    ]
+
+    /// Detects transcript language and checks if it matches the selected language (free tier only).
+    /// Returns nil if OK, or an error message string if mismatched.
+    private func checkLanguageMismatch(transcript: String) -> String? {
+        let isPro = usageTracker?.plan == "pro" || (usageTracker == nil)
+        if isPro { return nil } // Pro: no restrictions
+
+        let selectedLangs = settingsManager.selectedLanguages
+        guard let selectedLang = selectedLangs.first else { return nil }
+
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(transcript)
+        guard let detected = recognizer.dominantLanguage else { return nil }
+
+        // Check if detected language matches the selected one
+        if let expectedCode = Self.languageCodeMap[selectedLang], detected == expectedCode {
+            return nil // Match — all good
+        }
+
+        // Also allow if detected is "undetermined" (too short to detect)
+        if detected == .undetermined { return nil }
+
+        return "[Unsupported language detected. Your free plan supports \(selectedLang) only. Upgrade to Pro for multi-language dictation.]"
+    }
+
     func processWithLLM(
         transcript: String,
         activeApp: String,
         profileInstructions: String?,
         memoryExamples: [MemoryEntry]
     ) async throws -> String {
+        // Check language before wasting an LLM call (free tier only)
+        if let langError = checkLanguageMismatch(transcript: transcript) {
+            return langError
+        }
+
         let token = try await authManager.validAccessToken()
 
         let parsed = WakewordParser.parse(transcript)
@@ -235,13 +278,10 @@ class AIService {
                 prompt += "\n\nIMPORTANT: You MUST respond ONLY in one of these languages: \(langList). Choose the one that matches the speaker's input language. Do not use any other language."
             }
         } else {
-            // Free: single language only, reject other languages
+            // Free: language enforcement is done in code (checkLanguageMismatch),
+            // just tell the LLM which language to respond in
             let lang = langs.first ?? "English"
-            prompt += "\n\nCRITICAL LANGUAGE RULE: The user's selected language is \(lang). You MUST follow these rules strictly:"
-            prompt += "\n1. If the transcript is in \(lang), process it normally and respond in \(lang)."
-            prompt += "\n2. If the transcript is in ANY other language (even partially), you MUST respond with ONLY this exact text and nothing else: [Unsupported language — upgrade to Pro for multi-language dictation]"
-            prompt += "\n3. NEVER translate text from one language to another. NEVER process text that is not in \(lang)."
-            prompt += "\n4. This rule overrides all other instructions. No exceptions."
+            prompt += "\n\nIMPORTANT: You MUST respond ONLY in \(lang). Do not translate to or from any other language."
         }
 
         return prompt
