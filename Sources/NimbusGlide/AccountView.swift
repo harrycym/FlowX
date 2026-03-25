@@ -86,6 +86,42 @@ struct AccountView: View {
                     .padding(4)
                 }
 
+                // Plan limits
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("Plan Limits", systemImage: "list.bullet")
+                            .font(.callout.weight(.medium))
+
+                        HStack {
+                            Text("Max dictation length")
+                                .font(.callout)
+                            Spacer()
+                            Text(usageTracker.isPro ? "15 minutes" : "5 minutes")
+                                .font(.callout.weight(.medium))
+                                .foregroundColor(usageTracker.isPro ? .purple : .secondary)
+                        }
+                        Divider()
+                        HStack {
+                            Text("Languages")
+                                .font(.callout)
+                            Spacer()
+                            Text(usageTracker.isPro ? "Unlimited (auto-detect)" : "1 language")
+                                .font(.callout.weight(.medium))
+                                .foregroundColor(usageTracker.isPro ? .purple : .secondary)
+                        }
+                        Divider()
+                        HStack {
+                            Text("Words per month")
+                                .font(.callout)
+                            Spacer()
+                            Text(usageTracker.isPro ? "Unlimited" : "\(usageTracker.wordLimit?.formatted() ?? "2,000")")
+                                .font(.callout.weight(.medium))
+                                .foregroundColor(usageTracker.isPro ? .purple : .secondary)
+                        }
+                    }
+                    .padding(4)
+                }
+
                 // Actions
                 GroupBox {
                     VStack(spacing: 0) {
@@ -124,6 +160,7 @@ struct AccountView: View {
             .padding(24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(NimbusColors.warmBg)
         .sheet(isPresented: $showUpgrade) {
             UpgradeView()
         }

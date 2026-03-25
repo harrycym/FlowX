@@ -226,11 +226,20 @@ class AIService {
 
         // Language directive
         let langs = settingsManager.selectedLanguages
-        if langs.count == 1 {
-            prompt += "\n\nIMPORTANT: You MUST respond ONLY in \(langs[0]). Do not use any other language."
-        } else if langs.count >= 2 && langs.count <= 3 {
-            let langList = langs.joined(separator: ", ")
-            prompt += "\n\nIMPORTANT: You MUST respond ONLY in one of these languages: \(langList). Choose the one that matches the speaker's input language. Do not use any other language."
+        let isPro = usageTracker?.plan == "pro" || (usageTracker == nil)
+
+        if isPro {
+            // Pro: multi-language with auto-detection
+            if langs.count == 1 {
+                prompt += "\n\nIMPORTANT: You MUST respond ONLY in \(langs[0]). Do not use any other language."
+            } else if langs.count >= 2 {
+                let langList = langs.joined(separator: ", ")
+                prompt += "\n\nIMPORTANT: You MUST respond ONLY in one of these languages: \(langList). Choose the one that matches the speaker's input language. Do not use any other language."
+            }
+        } else {
+            // Free: single language only, reject other languages
+            let lang = langs.first ?? "English"
+            prompt += "\n\nIMPORTANT: You MUST respond ONLY in \(lang). If the speaker's input is in a different language, respond with exactly: \"[Unsupported language — upgrade to Pro for multi-language dictation]\". Do not translate. Do not process the text."
         }
 
         return prompt

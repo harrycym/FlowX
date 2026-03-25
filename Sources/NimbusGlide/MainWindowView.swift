@@ -3,6 +3,7 @@ import SwiftUI
 extension Notification.Name {
     static let nimbusglideNavigateToSettings = Notification.Name("nimbusglideNavigateToSettings")
     static let nimbusglideNavigateToHistory = Notification.Name("nimbusglideNavigateToHistory")
+    static let nimbusglideNavigateToAccount = Notification.Name("nimbusglideNavigateToAccount")
 }
 
 enum SidebarItem: String, CaseIterable, Identifiable {
@@ -25,6 +26,11 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .account: return "person.crop.circle"
         }
     }
+
+    /// Top items (features)
+    static var topItems: [SidebarItem] { [.home, .dictionary, .snippets, .style] }
+    /// Bottom items (meta)
+    static var bottomItems: [SidebarItem] { [.settings, .account] }
 }
 
 struct MainWindowView: View {
@@ -60,7 +66,10 @@ struct MainWindowView: View {
                 selectedItem = .settings
             }
             .onReceive(NotificationCenter.default.publisher(for: .nimbusglideNavigateToHistory)) { _ in
-                selectedItem = .home  // History is now on home
+                selectedItem = .home
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .nimbusglideNavigateToAccount)) { _ in
+                selectedItem = .account
             }
         }
     }
@@ -91,9 +100,18 @@ struct MainWindowView: View {
             .padding(.top, 12)
             .padding(.bottom, 8)
 
-            List(SidebarItem.allCases, selection: $selectedItem) { item in
-                Label(item.rawValue, systemImage: item.icon)
-                    .tag(item)
+            List(selection: $selectedItem) {
+                ForEach(SidebarItem.topItems) { item in
+                    Label(item.rawValue, systemImage: item.icon)
+                        .tag(item)
+                }
+
+                Section {
+                    ForEach(SidebarItem.bottomItems) { item in
+                        Label(item.rawValue, systemImage: item.icon)
+                            .tag(item)
+                    }
+                }
             }
             .listStyle(.sidebar)
 

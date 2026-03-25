@@ -5,6 +5,7 @@ struct AppSettingsView: View {
     @EnvironmentObject var pipelineState: PipelineState
     @EnvironmentObject var usageTracker: UsageTracker
     @EnvironmentObject var updateChecker: UpdateChecker
+    @State private var showLanguageUpgradeAlert = false
 
     var body: some View {
         ScrollView {
@@ -90,9 +91,15 @@ struct AppSettingsView: View {
                         Label("Language", systemImage: "globe")
                             .font(.headline)
 
-                        Text("Select which languages the AI may respond in. Pick 1-3 for best results.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        if usageTracker.isPro {
+                            Text("Select which languages the AI may respond in. Multi-language support auto-detects and responds in the matching language.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Choose your dictation language. Upgrade to Pro for multi-language support.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
 
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), alignment: .leading)], spacing: 6) {
                             ForEach(SettingsManager.supportedLanguages, id: \.self) { language in
@@ -100,7 +107,12 @@ struct AppSettingsView: View {
                                     get: { settingsManager.selectedLanguages.contains(language) },
                                     set: { isOn in
                                         if isOn {
-                                            settingsManager.selectedLanguages.append(language)
+                                            if !usageTracker.isPro && !settingsManager.selectedLanguages.isEmpty {
+                                                // Free tier: only 1 language allowed
+                                                showLanguageUpgradeAlert = true
+                                            } else {
+                                                settingsManager.selectedLanguages.append(language)
+                                            }
                                         } else {
                                             settingsManager.selectedLanguages.removeAll { $0 == language }
                                         }
@@ -111,6 +123,15 @@ struct AppSettingsView: View {
                         }
                     }
                     .padding(4)
+                }
+                .alert("Multi-language is a Pro feature", isPresented: $showLanguageUpgradeAlert) {
+                    Button("Upgrade to Pro") {
+                        // Navigate to account/upgrade
+                        NotificationCenter.default.post(name: .nimbusglideNavigateToAccount, object: nil)
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Free tier supports one language at a time. Upgrade to Pro to dictate in multiple languages with auto-detection.")
                 }
 
                 // Usage

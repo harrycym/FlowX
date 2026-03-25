@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.4.3</title>
-      <description><![CDATA[<p>Default dictionary corrections and snippet examples for new users</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:23:03 +0000</pubDate>
-      <sparkle:version>1.4.3</sparkle:version>
-      <sparkle:shortVersionString>1.4.3</sparkle:shortVersionString>
+      <title>NimbusGlide 1.5.0</title>
+      <description><![CDATA[<p>Free tier: 1 language only with upgrade prompt, Pro: unlimited languages. Plan limits shown in Account. Sidebar reordered: Settings/Account at bottom. Default snippets and dictionary examples.</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:28:27 +0000</pubDate>
+      <sparkle:version>1.5.0</sparkle:version>
+      <sparkle:shortVersionString>1.5.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.4.3/NimbusGlide.zip"
-        length="3028390"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.5.0/NimbusGlide.zip"
+        length="3039637"
         type="application/octet-stream"
-        sparkle:edSignature=""
+        sparkle:edSignature="zAYjNPg8EZRXF5RQT1NK5S1dLXsuAbGzmxX6NTwzLAavCsIoqZLAVW5EeQjQDmnI/diPC5JxJodoL0RnG6dBDA=="
       />
     </item>
   </channel>
