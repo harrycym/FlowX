@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.5.0</title>
-      <description><![CDATA[<p>Free tier: 1 language only with upgrade prompt, Pro: unlimited languages. Plan limits shown in Account. Sidebar reordered: Settings/Account at bottom. Default snippets and dictionary examples.</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:28:27 +0000</pubDate>
-      <sparkle:version>1.5.0</sparkle:version>
-      <sparkle:shortVersionString>1.5.0</sparkle:shortVersionString>
+      <title>NimbusGlide 1.6.0</title>
+      <description><![CDATA[<p>Pro upgrade sales page with side-by-side comparison, $1 first month offer, profile limit (5 free / unlimited pro), auto-copy enabled by default</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:33:02 +0000</pubDate>
+      <sparkle:version>1.6.0</sparkle:version>
+      <sparkle:shortVersionString>1.6.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.5.0/NimbusGlide.zip"
-        length="3039637"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.0/NimbusGlide.zip"
+        length="3054516"
         type="application/octet-stream"
-        sparkle:edSignature="zAYjNPg8EZRXF5RQT1NK5S1dLXsuAbGzmxX6NTwzLAavCsIoqZLAVW5EeQjQDmnI/diPC5JxJodoL0RnG6dBDA=="
+        sparkle:edSignature="m9rkboC4t/QHtNutr1RqSbOsYIwLswxiVE9vt6iuwWk1erMDDRFSthTmcC2meJIr9fWEvF6Q+BnQR9vDbAcDCA=="
       />
     </item>
   </channel>

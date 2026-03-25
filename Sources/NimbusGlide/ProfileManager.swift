@@ -63,8 +63,14 @@ class ProfileManager: ObservableObject {
         }
     }
 
+    static let freeProfileLimit = 5
+
     func addProfile(_ profile: Profile) {
         profiles.append(profile)
+    }
+
+    func canAddProfile(isPro: Bool) -> Bool {
+        isPro || profiles.count < Self.freeProfileLimit
     }
 
     func deleteProfile(at offsets: IndexSet) {

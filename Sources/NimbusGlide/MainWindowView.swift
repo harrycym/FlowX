@@ -149,6 +149,7 @@ struct MainWindowView: View {
         case .style:
             ProfilesView()
                 .environmentObject(profileManager)
+                .environmentObject(usageTracker)
         case .settings:
             AppSettingsView()
                 .environmentObject(settingsManager)

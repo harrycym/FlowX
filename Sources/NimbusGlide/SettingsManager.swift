@@ -87,7 +87,7 @@ class SettingsManager: ObservableObject {
 
         self.customKeyCode  = UInt16(UserDefaults.standard.integer(forKey: Self.customKeyCodeKey))
         self.customKeyLabel = UserDefaults.standard.string(forKey: Self.customKeyLabelKey) ?? "—"
-        self.autoCopyToClipboard = UserDefaults.standard.object(forKey: Self.autoCopyKey) as? Bool ?? false
+        self.autoCopyToClipboard = UserDefaults.standard.object(forKey: Self.autoCopyKey) as? Bool ?? true
         self.showStatusIndicator = UserDefaults.standard.object(forKey: Self.statusIndicatorKey) as? Bool ?? true
         self.selectedLanguages = UserDefaults.standard.stringArray(forKey: Self.languagesKey) ?? ["English"]
     }

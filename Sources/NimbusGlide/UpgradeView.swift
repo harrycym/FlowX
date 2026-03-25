@@ -2,13 +2,18 @@ import SwiftUI
 import AppKit
 
 struct UpgradeView: View {
-    @EnvironmentObject var usageTracker: UsageTracker
     @Environment(\.dismiss) var dismiss
     @State private var selectedPlan: PlanOption = .annual
     @State private var isLoading = false
     @State private var errorMessage: String?
 
     enum PlanOption { case monthly, annual }
+
+    private let darkText = Color(red: 0.08, green: 0.04, blue: 0.18)
+    private let proGradient = LinearGradient(
+        colors: [Color(red: 0.38, green: 0.20, blue: 0.92), Color(red: 0.55, green: 0.15, blue: 0.98)],
+        startPoint: .leading, endPoint: .trailing
+    )
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -19,99 +24,13 @@ struct UpgradeView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // Header
-                VStack(spacing: 10) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(
-                                colors: [Color(red: 0.38, green: 0.20, blue: 0.92), Color(red: 0.62, green: 0.18, blue: 0.95)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ))
-                            .frame(width: 60, height: 60)
-                            .shadow(color: Color.purple.opacity(0.35), radius: 12, x: 0, y: 6)
-                        Image(systemName: "waveform")
-                            .font(.system(size: 26, weight: .medium))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top, 28)
-
-                    Text("Go Pro")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.1, green: 0.05, blue: 0.2))
-
-                    Text("Unlimited dictation.\nNo word limits, ever.")
-                        .font(.callout)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
+            ScrollView {
+                VStack(spacing: 0) {
+                    header
+                    comparisonTable
+                    planPicker
+                    ctaSection
                 }
-                .padding(.bottom, 22)
-
-                // Plan cards
-                VStack(spacing: 8) {
-                    planCard(option: .annual,  title: "Annual",  price: "$3", period: "/mo", detail: "$36 billed yearly", badge: "Save 40%")
-                    planCard(option: .monthly, title: "Monthly", price: "$5", period: "/mo", detail: "Cancel anytime",    badge: nil)
-                }
-                .padding(.horizontal, 20)
-
-                // Features
-                VStack(alignment: .leading, spacing: 5) {
-                    featureRow(icon: "infinity",              "Unlimited dictation")
-                    featureRow(icon: "sparkles",              "Best AI model")
-                    featureRow(icon: "person.text.rectangle", "Custom profiles")
-                    featureRow(icon: "bolt.fill",             "Priority processing")
-                }
-                .padding(.top, 16)
-                .frame(maxWidth: .infinity, alignment: .center)
-
-                Spacer()
-
-                // CTA
-                VStack(spacing: 8) {
-                    if let error = errorMessage {
-                        Text(error)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
-                    }
-
-                    Button(action: handleUpgrade) {
-                        HStack(spacing: 8) {
-                            if isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.75)
-                                    .progressViewStyle(.circular)
-                                    .tint(.white)
-                            }
-                            Text(isLoading ? "Opening checkout…" : "Continue to Checkout")
-                                .font(.system(size: 15, weight: .semibold))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(LinearGradient(
-                            colors: [Color(red: 0.38, green: 0.20, blue: 0.92), Color(red: 0.55, green: 0.15, blue: 0.98)],
-                            startPoint: .leading, endPoint: .trailing
-                        ))
-                        .foregroundColor(.white)
-                        .cornerRadius(13)
-                        .shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isLoading)
-                    .padding(.horizontal, 20)
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.shield.fill")
-                            .font(.caption2)
-                            .foregroundColor(.green)
-                        Text("7-day money-back guarantee")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding(.bottom, 20)
             }
 
             // Close button
@@ -126,7 +45,142 @@ struct UpgradeView: View {
             .buttonStyle(.plain)
             .padding(12)
         }
-        .frame(width: 360, height: 510)
+        .frame(width: 480, height: 640)
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(proGradient)
+                    .frame(width: 56, height: 56)
+                    .shadow(color: Color.purple.opacity(0.35), radius: 12, x: 0, y: 6)
+                Image(systemName: "waveform")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.white)
+            }
+            .padding(.top, 28)
+
+            Text("Unlock NimbusGlide Pro")
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundColor(darkText)
+
+            Text("Dictate longer. Speak in any language.\nUnlimited everything.")
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+        }
+        .padding(.bottom, 24)
+    }
+
+    // MARK: - Side-by-side comparison
+
+    private var comparisonTable: some View {
+        VStack(spacing: 0) {
+            // Column headers
+            HStack(spacing: 0) {
+                Text("")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Free")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(.secondary)
+                    .frame(width: 80)
+                Text("Pro")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(.white)
+                    .frame(width: 80)
+                    .padding(.vertical, 5)
+                    .background(proGradient)
+                    .cornerRadius(6)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+
+            VStack(spacing: 0) {
+                comparisonRow(feature: "Words per month",     free: "2,000",       pro: "Unlimited")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Dictation length",    free: "5 min",       pro: "15 min")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Languages",           free: "1",           pro: "All 32")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Profiles",            free: "5",           pro: "Unlimited")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Dictionary & Snippets", free: "checkmark", pro: "checkmark")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Wake word commands",  free: "checkmark",   pro: "checkmark")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Priority processing", free: "xmark",       pro: "checkmark")
+                Divider().padding(.leading, 20)
+                comparisonRow(feature: "Auto language detect",free: "xmark",       pro: "checkmark")
+            }
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .padding(.horizontal, 20)
+        }
+        .padding(.bottom, 20)
+    }
+
+    private func comparisonRow(feature: String, free: String, pro: String) -> some View {
+        HStack(spacing: 0) {
+            Text(feature)
+                .font(.callout)
+                .foregroundColor(darkText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            comparisonCell(value: free, isPro: false)
+                .frame(width: 80)
+
+            comparisonCell(value: pro, isPro: true)
+                .frame(width: 80)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func comparisonCell(value: String, isPro: Bool) -> some View {
+        if value == "checkmark" {
+            Image(systemName: "checkmark")
+                .font(.caption.weight(.bold))
+                .foregroundColor(isPro ? Color(red: 0.38, green: 0.20, blue: 0.92) : .green)
+        } else if value == "xmark" {
+            Image(systemName: "minus")
+                .font(.caption)
+                .foregroundColor(.secondary.opacity(0.5))
+        } else {
+            Text(value)
+                .font(.callout.weight(isPro ? .semibold : .regular))
+                .foregroundColor(isPro ? Color(red: 0.38, green: 0.20, blue: 0.92) : .secondary)
+        }
+    }
+
+    // MARK: - Plan picker
+
+    private var planPicker: some View {
+        VStack(spacing: 8) {
+            planCard(
+                option: .annual,
+                title: "Annual",
+                price: "$3",
+                period: "/mo",
+                detail: "$36 billed yearly",
+                badge: "Save 40%"
+            )
+            planCard(
+                option: .monthly,
+                title: "Monthly",
+                price: "$5",
+                period: "/mo",
+                detail: "Cancel anytime",
+                badge: nil
+            )
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
 
     private func planCard(option: PlanOption, title: String, price: String, period: String, detail: String, badge: String?) -> some View {
@@ -148,17 +202,14 @@ struct UpgradeView: View {
                     HStack(spacing: 6) {
                         Text(title)
                             .font(.callout.weight(.semibold))
-                            .foregroundColor(Color(red: 0.1, green: 0.05, blue: 0.2))
+                            .foregroundColor(darkText)
                         if let badge {
                             Text(badge)
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 3)
-                                .background(LinearGradient(
-                                    colors: [Color(red: 0.38, green: 0.20, blue: 0.92), Color(red: 0.62, green: 0.18, blue: 0.95)],
-                                    startPoint: .leading, endPoint: .trailing
-                                ))
+                                .background(proGradient)
                                 .cornerRadius(5)
                         }
                     }
@@ -170,7 +221,7 @@ struct UpgradeView: View {
                 Spacer()
 
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text(price).font(.title2.weight(.bold)).foregroundColor(Color(red: 0.1, green: 0.05, blue: 0.2))
+                    Text(price).font(.title2.weight(.bold)).foregroundColor(darkText)
                     Text(period).font(.caption).foregroundColor(.secondary)
                 }
             }
@@ -179,7 +230,7 @@ struct UpgradeView: View {
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isSelected ? Color(red: 0.38, green: 0.20, blue: 0.92).opacity(0.06) : Color.white)
-                    .shadow(color: Color.black.opacity(isSelected ? 0 : 0.04), radius: 4, x: 0, y: 2)
+                    .shadow(color: .black.opacity(isSelected ? 0 : 0.04), radius: 4, x: 0, y: 2)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -189,18 +240,59 @@ struct UpgradeView: View {
         .buttonStyle(.plain)
     }
 
-    private func featureRow(icon: String, _ text: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(LinearGradient(
-                    colors: [Color(red: 0.38, green: 0.20, blue: 0.92), Color(red: 0.62, green: 0.18, blue: 0.95)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                ))
-                .frame(width: 14, alignment: .center)
-            Text(text)
-                .font(.caption)
-                .foregroundColor(Color(red: 0.3, green: 0.25, blue: 0.4))
+    // MARK: - CTA
+
+    private var ctaSection: some View {
+        VStack(spacing: 10) {
+            if let error = errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+            }
+
+            Button(action: handleUpgrade) {
+                HStack(spacing: 8) {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.75)
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                    }
+                    Text(isLoading ? "Opening checkout..." : "Start Pro — $1 for your first month")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(proGradient)
+                .foregroundColor(.white)
+                .cornerRadius(13)
+                .shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
+            }
+            .buttonStyle(.plain)
+            .disabled(isLoading)
+            .padding(.horizontal, 20)
+
+            HStack(spacing: 12) {
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.shield.fill")
+                        .font(.caption2)
+                        .foregroundColor(.green)
+                    Text("7-day money-back guarantee")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "bolt.fill")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                    Text("Cancel anytime")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.bottom, 20)
         }
     }
 

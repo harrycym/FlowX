@@ -2,8 +2,10 @@ import SwiftUI
 
 struct ProfilesView: View {
     @EnvironmentObject var profileManager: ProfileManager
+    @EnvironmentObject var usageTracker: UsageTracker
     @State private var selectedProfileId: UUID?
     @State private var showingAddSheet = false
+    @State private var showUpgradeAlert = false
 
     var body: some View {
         HSplitView {
@@ -30,15 +32,21 @@ struct ProfilesView: View {
                 Divider()
 
                 HStack {
-                    Button(action: { showingAddSheet = true }) {
+                    Button(action: handleAddProfile) {
                         Label("Add Profile", systemImage: "plus")
                             .font(.caption)
                     }
                     .buttonStyle(.plain)
                     Spacer()
-                    Text("\(profileManager.profiles.count) profiles")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if !usageTracker.isPro {
+                        Text("\(profileManager.profiles.count)/\(ProfileManager.freeProfileLimit)")
+                            .font(.caption)
+                            .foregroundColor(profileManager.profiles.count >= ProfileManager.freeProfileLimit ? .orange : .secondary)
+                    } else {
+                        Text("\(profileManager.profiles.count) profiles")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding(8)
             }
@@ -66,10 +74,26 @@ struct ProfilesView: View {
         .sheet(isPresented: $showingAddSheet) {
             AddProfileView(profileManager: profileManager, isPresented: $showingAddSheet)
         }
+        .alert("Profile limit reached", isPresented: $showUpgradeAlert) {
+            Button("Upgrade to Pro") {
+                NotificationCenter.default.post(name: .nimbusglideNavigateToAccount, object: nil)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Free accounts can have up to \(ProfileManager.freeProfileLimit) profiles. Upgrade to Pro for unlimited profiles.")
+        }
         .onAppear {
             if selectedProfileId == nil {
                 selectedProfileId = profileManager.activeProfileId ?? profileManager.profiles.first?.id
             }
+        }
+    }
+
+    private func handleAddProfile() {
+        if profileManager.canAddProfile(isPro: usageTracker.isPro) {
+            showingAddSheet = true
+        } else {
+            showUpgradeAlert = true
         }
     }
 }
