@@ -8,15 +8,15 @@
     <item>
       <title>NimbusGlide 1.6.5</title>
       <description><![CDATA[<p>Add profiles to plan limits, auto-clear stale auth error banners on home</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:56:49 +0000</pubDate>
+      <pubDate>Wed, 25 Mar 2026 13:59:04 +0000</pubDate>
       <sparkle:version>1.6.5</sparkle:version>
       <sparkle:shortVersionString>1.6.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.5/NimbusGlide.zip"
-        length="3063745"
+        length="3063743"
         type="application/octet-stream"
-        sparkle:edSignature="FV6tRebt5L1/FbIXmZ615q/lVn3cLUAxbw7m13gM9bKgPekkcKFwO5uMUCwN4c+bvFaa1lUHt/ijKd8KPQIjBw=="
+        sparkle:edSignature="KkPdPWTA72M9SacDPDM8/WojwBjpIGjzSKHz297pA6rfvyf56aTi19etCJkmUnJsNgOYKJJxXnkE4LuV7zkeDw=="
       />
     </item>
   </channel>
