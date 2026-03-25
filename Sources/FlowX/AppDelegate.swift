@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let memoryManager = MemoryManager()
     let settingsManager = SettingsManager()
     let pipelineState = PipelineState()
+    let updateChecker = UpdateChecker()
     var pipeline: FlowXPipeline!
 
     private var cancellables = Set<AnyCancellable>()
@@ -93,6 +94,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.hotkeyManager.hotkey = newHotkey
             }
             .store(in: &cancellables)
+
+        // Check for updates
+        updateChecker.checkForUpdate()
 
         // Auto-show main window on launch
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

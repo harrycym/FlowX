@@ -12,6 +12,7 @@ struct FlowXApp: App {
                 .environmentObject(appDelegate.profileManager)
                 .environmentObject(appDelegate.memoryManager)
                 .environmentObject(appDelegate.settingsManager)
+                .environmentObject(appDelegate.updateChecker)
         }
         .defaultSize(width: 750, height: 500)
 

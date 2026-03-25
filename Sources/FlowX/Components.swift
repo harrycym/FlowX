@@ -295,6 +295,42 @@ struct LastResultCard: View {
     }
 }
 
+// MARK: - Update Banner
+
+struct UpdateBanner: View {
+    let version: String
+    let notes: String?
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("FlowX \(version) available")
+                    .font(.callout.weight(.semibold))
+                    .foregroundColor(.white)
+                if let notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineLimit(1)
+                }
+            }
+            Spacer()
+            Button("Update") {
+                // Open the repo so user can pull & rebuild
+                NSWorkspace.shared.open(URL(string: "https://github.com/harrycym/FlowX")!)
+            }
+            .buttonStyle(.bordered)
+            .tint(.white)
+            .controlSize(.small)
+        }
+        .padding(12)
+        .background(Color.accentColor)
+        .cornerRadius(10)
+    }
+}
+
 // MARK: - Error Banner
 
 struct ErrorBanner: View {
