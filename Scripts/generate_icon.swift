@@ -50,35 +50,15 @@ func renderIcon(size: CGFloat) -> NSImage {
     let ctx = NSGraphicsContext.current!.cgContext
     let rect = CGRect(x: 0, y: 0, width: size, height: size)
 
-    // Background: rounded rectangle with gradient
-    let cornerRadius = size * 0.22
-    let bgPath = CGPath(roundedRect: rect.insetBy(dx: size * 0.02, dy: size * 0.02),
-                        cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
-
-    ctx.saveGState()
-    ctx.addPath(bgPath)
-    ctx.clip()
-
-    // Dark cinematic gradient for a premium commercial look
-    let colors = [
-        CGColor(red: 0.05, green: 0.05, blue: 0.08, alpha: 1.0),
-        CGColor(red: 0.20, green: 0.05, blue: 0.40, alpha: 1.0),
-    ]
-    let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
-                               colors: colors as CFArray, locations: [0, 1])!
-    ctx.drawLinearGradient(gradient, start: CGPoint(x: 0, y: size),
-                           end: CGPoint(x: size, y: 0), options: [])
-    ctx.restoreGState()
-
     // Helper to draw a single 7-bar waveform
-    func drawWaveform(context: CGContext, canvasSize: CGFloat, alpha: CGFloat) {
+    func drawWaveform(context: CGContext, canvasSize: CGFloat, color: CGColor) {
         let barCount = 7
         let centerY = canvasSize * 0.5
-        let totalWidth = canvasSize * 0.65
+        let totalWidth = canvasSize * 0.7
         let barWidth = totalWidth / CGFloat(barCount * 2 - 1)
         let startX = (canvasSize - totalWidth) / 2.0
         
-        let barHeights: [CGFloat] = [0.2, 0.4, 0.6, 0.8, 0.6, 0.4, 0.2]
+        let barHeights: [CGFloat] = [0.3, 0.5, 0.7, 0.95, 0.7, 0.5, 0.3]
         
         for i in 0..<barCount {
             let x = startX + CGFloat(i) * barWidth * 2
@@ -88,8 +68,9 @@ func renderIcon(size: CGFloat) -> NSImage {
             let barPath = CGPath(roundedRect: barRect, cornerWidth: barWidth / 2, cornerHeight: barWidth / 2, transform: nil)
             
             context.saveGState()
-            context.setShadow(offset: .zero, blur: canvasSize * 0.04, color: CGColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.8))
-            context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: alpha))
+            // Strong dark drop shadow so it works on all desktop wallpapers
+            context.setShadow(offset: CGSize(width: 0, height: -canvasSize * 0.01), blur: canvasSize * 0.03, color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.5))
+            context.setFillColor(color)
             context.addPath(barPath)
             context.fillPath()
             context.restoreGState()
@@ -101,14 +82,14 @@ func renderIcon(size: CGFloat) -> NSImage {
     ctx.translateBy(x: size / 2, y: size / 2)
     ctx.rotate(by: .pi / 4) // 45 degrees
     ctx.translateBy(x: -size / 2, y: -size / 2)
-    drawWaveform(context: ctx, canvasSize: size, alpha: 0.75)
+    drawWaveform(context: ctx, canvasSize: size, color: CGColor(red: 0.1, green: 0.8, blue: 1.0, alpha: 0.95)) // Cyan
     ctx.restoreGState()
     
     ctx.saveGState()
     ctx.translateBy(x: size / 2, y: size / 2)
     ctx.rotate(by: -.pi / 4) // -45 degrees
     ctx.translateBy(x: -size / 2, y: -size / 2)
-    drawWaveform(context: ctx, canvasSize: size, alpha: 0.95)
+    drawWaveform(context: ctx, canvasSize: size, color: CGColor(red: 0.6, green: 0.1, blue: 1.0, alpha: 0.95)) // Purple
     ctx.restoreGState()
 
     image.unlockFocus()
