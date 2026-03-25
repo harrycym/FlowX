@@ -9,3 +9,4 @@ NimbusGlide.app/
 Resources/Secrets.plist
 worker/.wrangler/
 worker/node_modules/
+.agent-bus/
