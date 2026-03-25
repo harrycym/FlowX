@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.6.0</title>
-      <description><![CDATA[<p>Pro upgrade sales page with side-by-side comparison, $1 first month offer, profile limit (5 free / unlimited pro), auto-copy enabled by default</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:33:02 +0000</pubDate>
-      <sparkle:version>1.6.0</sparkle:version>
-      <sparkle:shortVersionString>1.6.0</sparkle:shortVersionString>
+      <title>NimbusGlide 1.6.1</title>
+      <description><![CDATA[<p>Fix column alignment in upgrade comparison table</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:45:38 +0000</pubDate>
+      <sparkle:version>1.6.1</sparkle:version>
+      <sparkle:shortVersionString>1.6.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.0/NimbusGlide.zip"
-        length="3054516"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.1/NimbusGlide.zip"
+        length="3054501"
         type="application/octet-stream"
-        sparkle:edSignature="m9rkboC4t/QHtNutr1RqSbOsYIwLswxiVE9vt6iuwWk1erMDDRFSthTmcC2meJIr9fWEvF6Q+BnQR9vDbAcDCA=="
+        sparkle:edSignature="oJI5hUlCxLsvDym5nOx7puivVqVfGsEaGP3N1/BCLqD4APT4YAxHu3XOqFisnqPZI/uxwcq4xnocdYTY76/5Dg=="
       />
     </item>
   </channel>

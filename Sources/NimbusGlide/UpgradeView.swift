@@ -80,7 +80,7 @@ struct UpgradeView: View {
 
     private var comparisonTable: some View {
         VStack(spacing: 0) {
-            // Column headers
+            // Column headers — aligned with row content inside the card
             HStack(spacing: 0) {
                 Text("")
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -96,7 +96,7 @@ struct UpgradeView: View {
                     .background(proGradient)
                     .cornerRadius(6)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 40) // 20 outer + 20 inner card padding
             .padding(.bottom, 8)
 
             VStack(spacing: 0) {
