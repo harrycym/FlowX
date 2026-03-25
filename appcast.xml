@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>NimbusGlide Updates</title>
-    <link>https://raw.githubusercontent.com/harrycym/NimbusGlide/main/appcast.xml</link>
+    <link>https://cdn.jsdelivr.net/gh/harrycym/NimbusGlide@main/appcast.xml</link>
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.8.0</title>
-      <description><![CDATA[<p>Typography overhaul - standardized font system, bigger text, more spacing, remove Globe from fn label</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 14:35:31 +0000</pubDate>
-      <sparkle:version>1.8.0</sparkle:version>
-      <sparkle:shortVersionString>1.8.0</sparkle:shortVersionString>
+      <title>NimbusGlide 1.8.1</title>
+      <description><![CDATA[<p>Fix updater - switch to jsDelivr CDN for faster cache purge, pop to front on update check</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 14:40:48 +0000</pubDate>
+      <sparkle:version>1.8.1</sparkle:version>
+      <sparkle:shortVersionString>1.8.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.8.0/NimbusGlide.zip"
-        length="3085109"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.8.1/NimbusGlide.zip"
+        length="3085334"
         type="application/octet-stream"
-        sparkle:edSignature="xix6eTdpd9Qi5oZ2LTTnN8orxJMVk2WlrVHyZyQ3/r8NUQEUPc7PhNU+1WZCX+9/hcZ3ml762pSfqdymXoFoCg=="
+        sparkle:edSignature="v9NmX1dpUw1jyOI7OrNVuR5aT9t/pIH+MJnOlN8mhaL2ShRgC0ZCbOfUKhYw7kgnjzRweRjRifMlmjPk/VcxAw=="
       />
     </item>
   </channel>

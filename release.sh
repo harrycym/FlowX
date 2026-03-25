@@ -98,7 +98,7 @@ cat > "$SCRIPT_DIR/appcast.xml" << APPCAST
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>NimbusGlide Updates</title>
-    <link>https://raw.githubusercontent.com/harrycym/NimbusGlide/main/appcast.xml</link>
+    <link>https://cdn.jsdelivr.net/gh/harrycym/NimbusGlide@main/appcast.xml</link>
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
