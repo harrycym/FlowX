@@ -126,14 +126,21 @@ struct AccountView: View {
                 GroupBox {
                     VStack(spacing: 0) {
                         if usageTracker.isPro {
-                            Button(action: {}) {
+                            Button(action: {
+                                // Opens Stripe billing portal in browser
+                                NSWorkspace.shared.open(URL(string: "https://nimbusglide.ai/account")!)
+                            }) {
                                 HStack {
-                                    Image(systemName: "gear")
+                                    Image(systemName: "globe")
                                         .frame(width: 24)
                                     Text("Manage Subscription")
+                                        .font(.callout)
                                     Spacer()
+                                    Text("Opens browser")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
                                     Image(systemName: "arrow.up.forward")
-                                        .font(.caption)
+                                        .font(.caption2)
                                         .foregroundColor(.secondary)
                                 }
                                 .padding(.vertical, 6)

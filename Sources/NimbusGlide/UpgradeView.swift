@@ -260,7 +260,7 @@ struct UpgradeView: View {
                             .progressViewStyle(.circular)
                             .tint(.white)
                     }
-                    Text(isLoading ? "Opening checkout..." : "Start Pro — $1 for your first month")
+                    Text(isLoading ? "Opening checkout..." : selectedPlan == .monthly ? "Start Pro — $0.99 for your first month" : "Start Pro — $36/year (save 40%)")
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
