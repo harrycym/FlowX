@@ -56,6 +56,9 @@ if [ -n "$SPARKLE_PATH" ]; then
     echo "==> Bundled Sparkle.framework"
 fi
 
+# Set rpath so the binary finds Sparkle.framework in Contents/Frameworks
+install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP_BUNDLE/Contents/MacOS/$APP_NAME" 2>/dev/null || true
+
 # Sign
 SIGN_IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null | grep "NimbusGlide Dev" | head -1 | awk -F'"' '{print $2}')
 if [ -n "$SIGN_IDENTITY" ]; then
