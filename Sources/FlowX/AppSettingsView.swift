@@ -97,23 +97,21 @@ struct AppSettingsView: View {
 
                 // About & Updates
                 GroupBox {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("FlowX")
-                                    .font(.callout.weight(.medium))
-                                Text("Version \(UpdateChecker.currentVersion)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Button("Check for Updates") {
-                                updateChecker.checkForUpdates()
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                            .disabled(!updateChecker.canCheckForUpdates)
+                    // About
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("FlowX")
+                                .font(.callout.weight(.medium))
+                            Text("Version \(UpdateChecker.currentVersion)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        Spacer()
+                        Button("Check for Updates") {
+                            updateChecker.checkForUpdates()
+                        }
+                        .disabled(!updateChecker.canCheckForUpdates)
+                        .buttonStyle(.borderedProminent)
                     }
                     .padding(4)
                 }

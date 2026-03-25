@@ -9,12 +9,6 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Update banner
-                if updateChecker.updateAvailable, let version = updateChecker.latestVersion {
-                    UpdateBanner(version: version, notes: updateChecker.releaseNotes)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
                 // Error banner
                 if let error = pipelineState.errorMessage {
                     ErrorBanner(message: error) {
@@ -48,6 +42,5 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(.easeInOut(duration: 0.25), value: pipelineState.errorMessage)
         .animation(.easeInOut(duration: 0.25), value: pipelineState.status)
-        .animation(.easeInOut(duration: 0.25), value: updateChecker.updateAvailable as Bool)
     }
 }
