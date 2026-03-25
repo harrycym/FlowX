@@ -107,6 +107,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     if let status = try? await self.apiClient.getUserStatus() {
                         await MainActor.run {
                             self.usageTracker.syncFromServer(status)
+                            // Set recording limit based on plan
+                            AudioRecorder.maxDuration = status.plan == "pro"
+                                ? AudioRecorder.maxDurationPro
+                                : AudioRecorder.maxDurationFree
                         }
                     }
                 }

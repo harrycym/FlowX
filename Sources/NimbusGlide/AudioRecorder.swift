@@ -8,8 +8,10 @@ class AudioRecorder: NSObject {
     private(set) var recordingStartTime: Date?
     private var maxDurationTimer: Timer?
 
-    /// Maximum recording duration in seconds
-    static let maxDuration: TimeInterval = 600 // 10 minutes
+    /// Maximum recording duration in seconds (Pro: 15 min, Free: 5 min)
+    static let maxDurationPro: TimeInterval = 900   // 15 minutes
+    static let maxDurationFree: TimeInterval = 300  // 5 minutes
+    static var maxDuration: TimeInterval = maxDurationFree
 
     /// Called when recording auto-stops at max duration
     var onMaxDurationReached: (() -> Void)?
@@ -46,7 +48,7 @@ class AudioRecorder: NSObject {
             // Auto-stop after max duration
             maxDurationTimer = Timer.scheduledTimer(withTimeInterval: Self.maxDuration, repeats: false) { [weak self] _ in
                 guard let self, self.isRecording else { return }
-                print("[NimbusGlide] Max recording duration reached (3 min)")
+                print("[NimbusGlide] Max recording duration reached")
                 self.onMaxDurationReached?()
             }
 

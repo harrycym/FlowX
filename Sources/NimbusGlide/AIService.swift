@@ -16,7 +16,47 @@ class AIService {
 
     // MARK: - Transcription (via Cloudflare Worker)
 
+    /// Chunk size for splitting long recordings (5 minutes of 16kHz mono 16-bit WAV)
+    private static let chunkDuration: TimeInterval = 300 // 5 minutes
+    private static let sampleRate: Int = 16000
+    private static let bytesPerSample: Int = 2 // 16-bit
+    private static let wavHeaderSize: Int = 44
+
     func transcribeAudio(fileURL: URL) async throws -> String {
+        let audioData = try Data(contentsOf: fileURL)
+        let rawAudioSize = audioData.count - Self.wavHeaderSize
+        let bytesPerChunk = Self.sampleRate * Self.bytesPerSample * Int(Self.chunkDuration)
+
+        // If short enough, send as single request
+        if rawAudioSize <= bytesPerChunk {
+            return try await transcribeChunk(audioData: audioData, filename: fileURL.lastPathComponent)
+        }
+
+        // Split into chunks and transcribe each
+        let wavHeader = audioData.prefix(Self.wavHeaderSize)
+        var transcripts: [String] = []
+        var offset = Self.wavHeaderSize
+
+        while offset < audioData.count {
+            let end = min(offset + bytesPerChunk, audioData.count)
+            let chunkRaw = audioData[offset..<end]
+
+            // Build a valid WAV file for this chunk
+            let chunkWav = buildWavData(header: wavHeader, rawAudio: chunkRaw)
+            let chunkName = "chunk_\(transcripts.count).wav"
+
+            let transcript = try await transcribeChunk(audioData: chunkWav, filename: chunkName)
+            if !transcript.isEmpty {
+                transcripts.append(transcript)
+            }
+
+            offset = end
+        }
+
+        return transcripts.joined(separator: " ")
+    }
+
+    private func transcribeChunk(audioData: Data, filename: String) async throws -> String {
         let token = try await authManager.validAccessToken()
 
         let boundary = UUID().uuidString
@@ -24,16 +64,14 @@ class AIService {
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 30
+        request.timeoutInterval = 60
 
-        let audioData = try Data(contentsOf: fileURL)
         var body = Data()
-        body.appendMultipart(boundary: boundary, name: "file", filename: fileURL.lastPathComponent, mimeType: "audio/wav", data: audioData)
+        body.appendMultipart(boundary: boundary, name: "file", filename: filename, mimeType: "audio/wav", data: audioData)
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = body
 
         let (data, response) = try await URLSession.shared.data(for: request)
-
         let httpResp = response as? HTTPURLResponse
 
         if httpResp?.statusCode == 403 {
@@ -51,6 +89,19 @@ class AIService {
         }
 
         return transcript
+    }
+
+    /// Builds a valid WAV file from a header template and raw PCM audio data.
+    private func buildWavData(header: Data, rawAudio: Data) -> Data {
+        var wav = Data(header)
+        let dataSize = UInt32(rawAudio.count)
+        let fileSize = UInt32(36 + rawAudio.count)
+        // Patch RIFF chunk size (bytes 4-7)
+        wav.replaceSubrange(4..<8, with: withUnsafeBytes(of: fileSize.littleEndian) { Data($0) })
+        // Patch data sub-chunk size (bytes 40-43)
+        wav.replaceSubrange(40..<44, with: withUnsafeBytes(of: dataSize.littleEndian) { Data($0) })
+        wav.append(rawAudio)
+        return wav
     }
 
     // MARK: - LLM Processing (via Cloudflare Worker)
