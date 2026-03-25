@@ -57,6 +57,13 @@ struct HomeView: View {
         .animation(.easeInOut(duration: 0.25), value: pipelineState.errorMessage)
         .animation(.easeInOut(duration: 0.25), value: pipelineState.status)
         .animation(.easeInOut(duration: 0.25), value: pipelineState.isAccessibilityAuthorized)
+        .onAppear {
+            // Clear stale auth errors if user is actually signed in
+            if authManager.isAuthenticated, let msg = pipelineState.errorMessage,
+               msg.contains("sign in") || msg.contains("Not signed") || msg.contains("Session expired") {
+                pipelineState.clearError()
+            }
+        }
         .onChange(of: pipelineState.status) { newStatus in
             if newStatus == .recording {
                 withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {

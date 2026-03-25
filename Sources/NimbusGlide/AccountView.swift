@@ -118,6 +118,15 @@ struct AccountView: View {
                                 .font(.callout.weight(.medium))
                                 .foregroundColor(usageTracker.isPro ? .purple : .secondary)
                         }
+                        Divider()
+                        HStack {
+                            Text("Profiles")
+                                .font(.callout)
+                            Spacer()
+                            Text(usageTracker.isPro ? "Unlimited" : "5 max")
+                                .font(.callout.weight(.medium))
+                                .foregroundColor(usageTracker.isPro ? .purple : .secondary)
+                        }
                     }
                     .padding(4)
                 }

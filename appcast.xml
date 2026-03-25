@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.6.4</title>
-      <description><![CDATA[<p>99 cent first month CTA, manage subscription opens browser, no in-app cancel</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:55:13 +0000</pubDate>
-      <sparkle:version>1.6.4</sparkle:version>
-      <sparkle:shortVersionString>1.6.4</sparkle:shortVersionString>
+      <title>NimbusGlide 1.6.5</title>
+      <description><![CDATA[<p>Add profiles to plan limits, auto-clear stale auth error banners on home</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:56:49 +0000</pubDate>
+      <sparkle:version>1.6.5</sparkle:version>
+      <sparkle:shortVersionString>1.6.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.4/NimbusGlide.zip"
-        length="3061268"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.5/NimbusGlide.zip"
+        length="3063745"
         type="application/octet-stream"
-        sparkle:edSignature="t2MNw2iRFAOfsNiAw2t8LOeAGvYyuG1HLJqpB4MtCwN1uEAAKONpXxFPInSKtVeULbISGUT1e6E/JX7nHnY+Dg=="
+        sparkle:edSignature="FV6tRebt5L1/FbIXmZ615q/lVn3cLUAxbw7m13gM9bKgPekkcKFwO5uMUCwN4c+bvFaa1lUHt/ijKd8KPQIjBw=="
       />
     </item>
   </channel>
