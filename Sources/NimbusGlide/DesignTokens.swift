@@ -7,15 +7,39 @@ enum NimbusColors {
     static let violet = Color(red: 0.55, green: 0.36, blue: 0.96)    // #8B5CF6
     static let cyan   = Color(red: 0.02, green: 0.71, blue: 0.83)    // #06B6D4
 
-    // Backgrounds
-    static let warmBg     = Color(red: 0.98, green: 0.97, blue: 0.96)  // warm off-white
-    static let cardBg     = Color.white
-    static let sidebarBg  = Color(red: 0.97, green: 0.96, blue: 0.95)
+    // Backgrounds — adapt to dark mode
+    static let warmBg     = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(red: 0.11, green: 0.11, blue: 0.13, alpha: 1)
+            : NSColor(red: 0.98, green: 0.97, blue: 0.96, alpha: 1)
+    })
+    static let cardBg     = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(red: 0.15, green: 0.15, blue: 0.17, alpha: 1)
+            : NSColor.white
+    })
+    static let sidebarBg  = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(red: 0.13, green: 0.13, blue: 0.15, alpha: 1)
+            : NSColor(red: 0.97, green: 0.96, blue: 0.95, alpha: 1)
+    })
 
-    // Text
-    static let heading    = Color(red: 0.10, green: 0.10, blue: 0.12)
-    static let body       = Color(red: 0.40, green: 0.40, blue: 0.45)
-    static let muted      = Color(red: 0.60, green: 0.60, blue: 0.64)
+    // Text — adapt to dark mode
+    static let heading    = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(red: 0.93, green: 0.93, blue: 0.95, alpha: 1)
+            : NSColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1)
+    })
+    static let body       = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(red: 0.70, green: 0.70, blue: 0.75, alpha: 1)
+            : NSColor(red: 0.40, green: 0.40, blue: 0.45, alpha: 1)
+    })
+    static let muted      = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(red: 0.50, green: 0.50, blue: 0.55, alpha: 1)
+            : NSColor(red: 0.60, green: 0.60, blue: 0.64, alpha: 1)
+    })
 
     // Status
     static let recording  = Color(red: 0.94, green: 0.27, blue: 0.27)  // warm red

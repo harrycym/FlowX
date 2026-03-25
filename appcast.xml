@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.4.0</title>
-      <description><![CDATA[<p>Chunked transcription for long recordings (up to 15 min Pro, 5 min Free), plan-based recording limits</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:00:01 +0000</pubDate>
-      <sparkle:version>1.4.0</sparkle:version>
-      <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+      <title>NimbusGlide 1.4.1</title>
+      <description><![CDATA[<p>Fix dark mode support - all colors now adapt to system appearance</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:03:37 +0000</pubDate>
+      <sparkle:version>1.4.1</sparkle:version>
+      <sparkle:shortVersionString>1.4.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.4.0/NimbusGlide.zip"
-        length="3025806"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.4.1/NimbusGlide.zip"
+        length="3030899"
         type="application/octet-stream"
-        sparkle:edSignature="qJQ5mMYfdnhIVXKQy8gZ+dzkwy8ZDocl1JyYvXwb98WJ0r+X8UUOA8pLuU9p2yeWTjSIDJmI46rBn1qsnh6FAg=="
+        sparkle:edSignature="rbSCOvz/gs4JtgOpkDOzLr2cZ2zUSyVK5tMAkMQxNUvSPkRU6QxRuCrzuEV0JckKTwqG2Zr77cE/TW4H2ZXxBQ=="
       />
     </item>
   </channel>
