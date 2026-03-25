@@ -10,12 +10,15 @@ let jwksFetchedAt = 0;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const origin = request.headers.get("Origin") || "*";
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": origin,
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "authorization, content-type",
+          "Access-Control-Allow-Credentials": "true",
         },
       });
     }
@@ -273,22 +276,37 @@ function reportUsageAsync(env: Env, userId: string, words: number) {
 // DEMO ENDPOINT (public, rate-limited, no auth)
 // ============================================================
 
-// In-memory rate limit store (resets when isolate recycles, ~fine for demo)
+// Rate limit store — keyed by both IP and device ID
+// In-memory (resets when isolate recycles), but device cookie adds persistence on client side
 const demoRateLimit: Map<string, { count: number; resetAt: number }> = new Map();
 const DEMO_MAX_REQUESTS = 5;
 const DEMO_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const DEMO_MAX_AUDIO_BYTES = 5 * 1024 * 1024; // 5MB (~30s of audio)
 
-function checkDemoRate(ip: string): boolean {
+function checkDemoRate(key: string): boolean {
   const now = Date.now();
-  const entry = demoRateLimit.get(ip);
+  const entry = demoRateLimit.get(key);
   if (!entry || now > entry.resetAt) {
-    demoRateLimit.set(ip, { count: 1, resetAt: now + DEMO_WINDOW_MS });
+    demoRateLimit.set(key, { count: 1, resetAt: now + DEMO_WINDOW_MS });
     return true;
   }
   if (entry.count >= DEMO_MAX_REQUESTS) return false;
   entry.count++;
   return true;
+}
+
+function getDeviceId(request: Request): string | null {
+  const cookie = request.headers.get("Cookie") || "";
+  const match = cookie.match(/ng_device=([a-f0-9-]+)/);
+  return match ? match[1] : null;
+}
+
+function generateDeviceId(): string {
+  // Simple UUID v4
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
 
 async function handleDemo(request: Request, env: Env): Promise<Response> {
@@ -297,7 +315,14 @@ async function handleDemo(request: Request, env: Env): Promise<Response> {
   }
 
   const ip = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For") || "unknown";
-  if (!checkDemoRate(ip)) {
+  let deviceId = getDeviceId(request);
+  const isNewDevice = !deviceId;
+  if (!deviceId) deviceId = generateDeviceId();
+
+  // Rate limit by BOTH IP and device — either one hitting the limit blocks the request
+  const ipAllowed = checkDemoRate(`ip:${ip}`);
+  const deviceAllowed = checkDemoRate(`dev:${deviceId}`);
+  if (!ipAllowed || !deviceAllowed) {
     return jsonResponse({ error: "Rate limit exceeded. Try again in an hour." }, 429);
   }
 
@@ -402,7 +427,7 @@ Output ONLY the reformatted text. No explanations, no preamble.`;
   });
 
   if (!processResp.ok) {
-    return jsonResponse({ transcript, polished: transcript, wakeWordDetected: wakeIndex !== -1 });
+    return demoResponse({ transcript, polished: transcript, wakeWordDetected: wakeIndex !== -1 }, deviceId, isNewDevice);
   }
 
   const processJson = (await processResp.json()) as {
@@ -410,7 +435,18 @@ Output ONLY the reformatted text. No explanations, no preamble.`;
   };
   const polished = processJson.choices?.[0]?.message?.content?.trim() ?? transcript;
 
-  return jsonResponse({ transcript, polished, wakeWordDetected: wakeIndex !== -1 });
+  return demoResponse({ transcript, polished, wakeWordDetected: wakeIndex !== -1 }, deviceId, isNewDevice);
+}
+
+function demoResponse(data: unknown, deviceId: string, setCoookie: boolean): Response {
+  const resp = jsonResponse(data);
+  if (setCoookie) {
+    resp.headers.set(
+      "Set-Cookie",
+      `ng_device=${deviceId}; Path=/; Max-Age=31536000; SameSite=None; Secure`
+    );
+  }
+  return resp;
 }
 
 // ============================================================
@@ -526,6 +562,7 @@ function jsonResponse(data: unknown, status = 200): Response {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
     },
   });
 }
