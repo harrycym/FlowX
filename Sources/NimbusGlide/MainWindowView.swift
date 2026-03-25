@@ -105,15 +105,34 @@ struct MainWindowView: View {
                     Label(item.rawValue, systemImage: item.icon)
                         .tag(item)
                 }
-
-                Section {
-                    ForEach(SidebarItem.bottomItems) { item in
-                        Label(item.rawValue, systemImage: item.icon)
-                            .tag(item)
-                    }
-                }
             }
             .listStyle(.sidebar)
+
+            Spacer()
+
+            // Bottom items — Settings & Account pinned above usage meter
+            VStack(spacing: 2) {
+                ForEach(SidebarItem.bottomItems) { item in
+                    Button(action: { selectedItem = item }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: item.icon)
+                                .font(.callout)
+                                .frame(width: 20)
+                            Text(item.rawValue)
+                                .font(.callout)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(selectedItem == item ? Color.accentColor.opacity(0.15) : Color.clear)
+                        .cornerRadius(6)
+                        .foregroundColor(selectedItem == item ? .accentColor : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 4)
 
             Divider()
 

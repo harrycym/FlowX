@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.6.2</title>
-      <description><![CDATA[<p>Fix language selection: free tier swaps instead of blocking, stronger anti-translation prompt</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:49:53 +0000</pubDate>
-      <sparkle:version>1.6.2</sparkle:version>
-      <sparkle:shortVersionString>1.6.2</sparkle:shortVersionString>
+      <title>NimbusGlide 1.6.3</title>
+      <description><![CDATA[<p>Pin Settings/Account above usage meter in sidebar, fix auth error banner showing on expired session</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:53:28 +0000</pubDate>
+      <sparkle:version>1.6.3</sparkle:version>
+      <sparkle:shortVersionString>1.6.3</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.2/NimbusGlide.zip"
-        length="3054751"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.3/NimbusGlide.zip"
+        length="3060431"
         type="application/octet-stream"
-        sparkle:edSignature="NhFzvLHoun17o2X1L8Am/fz04bCoVVp8XG7dWRWZNkeIhKurkAv6nkdc2Fu/wkPR5wDUdVaKpNvXB5eiXVJsCw=="
+        sparkle:edSignature="NigYf4NS38q2iasZ6IcwaoHUejxxBtqKY5439cRLGCH2sJyOqmRIKmQ8MRRr0BgFLxGt+De1UGwv/xKVVzKvAg=="
       />
     </item>
   </channel>

@@ -167,8 +167,17 @@ class NimbusGlidePipeline {
                     NSApp.activate(ignoringOtherApps: true)
                 }
                 await finish(status: .idle)
+            } catch let error as AuthError {
+                // Auth errors (expired session, not signed in) — session is already cleared
+                // by validAccessToken(), just reset pipeline state silently
+                #if DEBUG
+                print("[NimbusGlide] Auth error: \(error.localizedDescription)")
+                #endif
+                await finish(status: .idle)
             } catch {
+                #if DEBUG
                 print("[NimbusGlide] Pipeline error: \(error.localizedDescription)")
+                #endif
                 await MainActor.run {
                     pipelineState?.status = .error
                     pipelineState?.errorMessage = error.localizedDescription
