@@ -66,6 +66,24 @@ struct AppSettingsView: View {
                     .padding(4)
                 }
 
+                // Appearance
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Appearance", systemImage: "paintbrush")
+                            .font(.headline)
+
+                        Toggle(isOn: $settingsManager.showStatusIndicator) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Floating status indicator")
+                                Text("Shows a small pill at the bottom center when recording or processing")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding(4)
+                }
+
                 // Usage
                 GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
@@ -76,18 +94,18 @@ struct AppSettingsView: View {
                             Text("\(usageTracker.totalWordsUsed.formatted()) words used")
                                 .font(.callout)
                             Spacer()
-                            if usageTracker.isPaid {
+                            if usageTracker.isPro {
                                 Label("Pro", systemImage: "checkmark.seal.fill")
                                     .font(.caption.weight(.medium))
                                     .foregroundColor(.accentColor)
-                            } else {
-                                Text("\(usageTracker.wordsRemaining.formatted()) remaining")
+                            } else if let limit = usageTracker.wordLimit {
+                                Text("\(max(0, limit - usageTracker.totalWordsUsed).formatted()) remaining")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                         }
 
-                        if !usageTracker.isPaid {
+                        if !usageTracker.isPro {
                             ProgressView(value: usageTracker.usageRatio)
                                 .tint(usageTracker.usageRatio > 0.8 ? .orange : .accentColor)
                         }

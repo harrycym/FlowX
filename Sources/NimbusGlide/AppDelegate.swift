@@ -16,11 +16,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let pipelineState = PipelineState()
     let updateChecker = UpdateChecker()
     let usageTracker = UsageTracker()
+    let authManager = AuthManager()
+    var apiClient: APIClient!
     var pipeline: NimbusGlidePipeline!
+    var statusIndicator: StatusIndicatorPanel!
 
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Migrate plaintext token files to Keychain (one-time, from pre-1.1 builds)
+        KeychainHelper.migrateFromFilesIfNeeded()
+
         PermissionsManager.requestMicrophoneAccess { [weak self] granted in
             DispatchQueue.main.async {
                 self?.pipelineState.isMicrophoneAuthorized = granted
@@ -42,10 +48,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         PermissionsManager.checkAccessibilityAccess()
 
+        // Auth + API client
+        apiClient = APIClient(authManager: authManager)
+        authManager.restoreSession()
+
+        // Sync auth state to pipeline
+        authManager.$isAuthenticated
+            .receive(on: RunLoop.main)
+            .sink { [weak self] authenticated in
+                self?.pipelineState.isAuthenticated = authenticated
+            }
+            .store(in: &cancellables)
+
         appTracker = AppTracker()
         keystrokeSimulator = KeystrokeSimulator()
         audioRecorder = AudioRecorder()
-        aiService = AIService(settingsManager: settingsManager)
+        audioRecorder.cleanupStaleRecordings()
+        audioRecorder.onMaxDurationReached = { [weak self] in
+            self?.pipeline.stopRecordingAndProcess()
+        }
+        aiService = AIService(settingsManager: settingsManager, apiClient: apiClient)
         aiService.usageTracker = usageTracker
 
         pipeline = NimbusGlidePipeline(
@@ -68,12 +90,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.pipeline.toggleRecording()
         }
 
-        // API key is bundled — just set the state once
-        pipelineState.isAPIKeyConfigured = settingsManager.hasValidAPIKey
+        // Auth state is synced via Combine publisher above
+        pipelineState.isAuthenticated = authManager.isAuthenticated
 
-        // Start monitoring permissions (refreshes on activation + polls until granted)
+        // Sync usage from server on sign-in
+        authManager.$isAuthenticated
+            .filter { $0 }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                Task {
+                    if let status = try? await self.apiClient.getUserStatus() {
+                        await MainActor.run {
+                            self.usageTracker.syncFromServer(status)
+                        }
+                    }
+                }
+            }
+            .store(in: &cancellables)
+
         pipelineState.refreshPermissions()
         pipelineState.startMonitoringPermissions()
+
+        // Floating status indicator
+        statusIndicator = StatusIndicatorPanel()
+        statusIndicator.bind(to: pipelineState)
 
         hotkeyManager = HotkeyManager(
             hotkey: settingsManager.hotkey,
@@ -104,13 +145,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Sparkle handles automatic update checks
 
-        // Auto-show main window on launch
+        // Auto-show main window on launch and set delegate on all windows
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let window = NSApp.windows.first(where: { $0.title == "NimbusGlide" }) {
+            for window in NSApp.windows {
                 window.delegate = self
+            }
+            if let window = NSApp.windows.first(where: { $0.title == "NimbusGlide" }) {
                 window.makeKeyAndOrderFront(nil)
             }
             NSApp.activate(ignoringOtherApps: true)
+        }
+
+        // Also watch for new windows being created (SwiftUI can create them late)
+        NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { [weak self] note in
+            if let window = note.object as? NSWindow, window.delegate == nil || !(window.delegate is AppDelegate) {
+                window.delegate = self
+            }
         }
     }
 }
@@ -119,7 +169,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 extension AppDelegate: NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        sender.orderOut(nil) // Hide window without quitting
+        sender.orderOut(nil)
         return false
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ app: NSApplication) -> Bool {
+        return false
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // If user hits Cmd+Q or Quit from menu, actually quit
+        // If it's just the window closing, don't quit (handled by windowShouldClose)
+        return .terminateNow
     }
 }

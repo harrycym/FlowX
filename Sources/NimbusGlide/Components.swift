@@ -1,6 +1,36 @@
 import SwiftUI
 import AppKit
 
+// MARK: - Processing Spinner
+
+struct ProcessingSpinner: View {
+    @State private var spin = false
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            // Outer glow pulse
+            Circle()
+                .fill(Color.purple.opacity(0.15))
+                .frame(width: 60, height: 60)
+                .scaleEffect(pulse ? 1.3 : 0.9)
+
+            Image(systemName: "sparkles")
+                .font(.system(size: 36, weight: .light))
+                .foregroundColor(.purple)
+                .rotationEffect(.degrees(spin ? 360 : 0))
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                spin = true
+            }
+            withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
+        }
+    }
+}
+
 // MARK: - Status Pill (sidebar footer)
 
 struct StatusPill: View {
@@ -44,6 +74,8 @@ struct StatusPill: View {
 
 struct StatusSection: View {
     let status: PipelineStatus
+    var hotkeyName: String = "your hotkey"
+    var onHotkeyTap: (() -> Void)?
     @State private var isAnimating = false
 
     var body: some View {
@@ -56,18 +88,16 @@ struct StatusSection: View {
                 Circle()
                     .fill(statusColor.opacity(0.12))
                     .frame(width: 100, height: 100)
-                    .scaleEffect(status == .recording && isAnimating ? 1.3 : 1.0)
+                    .scaleEffect(status == .recording && isAnimating ? 1.3 : (status == .processing && isAnimating ? 1.15 : 1.0))
                     .animation(
-                        status == .recording
-                            ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true)
+                        (status == .recording || status == .processing)
+                            ? .easeInOut(duration: status == .processing ? 0.6 : 0.8).repeatForever(autoreverses: true)
                             : .default,
                         value: isAnimating
                     )
 
                 if status == .processing {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .progressViewStyle(.circular)
+                    ProcessingSpinner()
                 } else {
                     Image(systemName: statusIcon)
                         .font(.system(size: 36, weight: .light))
@@ -79,9 +109,33 @@ struct StatusSection: View {
                 .font(.title3.weight(.medium))
                 .foregroundColor(statusColor)
 
-            Text(statusHint)
-                .font(.caption)
-                .foregroundColor(.secondary)
+            if status == .idle, let onHotkeyTap {
+                HStack(spacing: 0) {
+                    Text("Hold ")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Button(action: onHotkeyTap) {
+                        Text(hotkeyName)
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { inside in
+                        if inside {
+                            NSCursor.pointingHand.push()
+                        } else {
+                            NSCursor.pop()
+                        }
+                    }
+                    Text(" or tap the button to speak")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                Text(statusHint)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .onAppear { isAnimating = true }
         .onChange(of: status) { _ in isAnimating = true }
@@ -100,7 +154,7 @@ struct StatusSection: View {
         switch status {
         case .idle: return "Hold your hotkey or tap the button to speak"
         case .recording: return "Release when you're done"
-        case .processing: return "This usually takes a second"
+        case .processing: return "Under 0.3 seconds"
         case .error: return "Check the error above for details"
         }
     }
@@ -231,14 +285,18 @@ struct UsageMeter: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()
-                if !usageTracker.isPaid {
+                if usageTracker.isPro {
+                    Label("Pro", systemImage: "checkmark.seal.fill")
+                        .font(.caption2.weight(.medium))
+                        .foregroundColor(.accentColor)
+                } else {
                     Text("\(usageTracker.wordsRemaining.formatted()) left")
                         .font(.caption)
                         .foregroundColor(usageTracker.usageRatio > 0.8 ? .orange : .secondary)
                 }
             }
 
-            if !usageTracker.isPaid {
+            if !usageTracker.isPro {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 3)
@@ -260,30 +318,53 @@ struct UsageMeter: View {
 // MARK: - Paywall Banner
 
 struct PaywallBanner: View {
+    @State private var showUpgrade = false
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 28))
-                .foregroundColor(.orange)
+        VStack(spacing: 16) {
+            Image(systemName: "bolt.shield.fill")
+                .font(.system(size: 36))
+                .foregroundStyle(
+                    LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+                )
 
-            Text("Free trial ended")
-                .font(.headline)
+            Text("You've hit the free limit")
+                .font(.title3.weight(.bold))
 
-            Text("You've used your free words.\nUpgrade to keep speaking.")
+            Text("Upgrade to Pro for unlimited dictation.\nStarting at just $3/month.")
                 .font(.callout)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+                .lineSpacing(2)
 
-            Button("Upgrade") {
-                // TODO: Link to payment portal
+            Button(action: { showUpgrade = true }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "bolt.fill")
+                    Text("Upgrade to Pro")
+                        .font(.body.weight(.semibold))
+                }
+                .frame(maxWidth: 240)
+                .padding(.vertical, 10)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
         }
-        .padding(24)
+        .padding(28)
         .frame(maxWidth: .infinity)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.controlBackgroundColor))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .strokeBorder(
+                            LinearGradient(colors: [.purple.opacity(0.3), .blue.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .sheet(isPresented: $showUpgrade) {
+            UpgradeView()
+        }
     }
 }
 
@@ -310,7 +391,7 @@ struct UpdateBanner: View {
             }
             Spacer()
             Button("Update") {
-                NSWorkspace.shared.open(URL(string: "https://github.com/harrycym/NimbusGlide")!)
+                NSWorkspace.shared.open(URL(string: "https://nimbusglide.ai")!)
             }
             .buttonStyle(.bordered)
             .tint(.white)

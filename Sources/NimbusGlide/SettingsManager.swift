@@ -20,14 +20,12 @@ enum GroqModel: String, CaseIterable, Identifiable {
 }
 
 class SettingsManager: ObservableObject {
-    private static let llmModelKey       = "flowx_llm_model"
-    private static let hotkeyKey         = "flowx_hotkey"
-    private static let customKeyCodeKey  = "flowx_custom_key_code"
-    private static let customKeyLabelKey = "flowx_custom_key_label"
-    private static let autoCopyKey       = "flowx_auto_copy"
-
-    /// Bundled API key loaded from Secrets.plist — never shown to users
-    let apiKey: String?
+    private static let llmModelKey       = "nimbusglide_llm_model"
+    private static let hotkeyKey         = "nimbusglide_hotkey"
+    private static let customKeyCodeKey  = "nimbusglide_custom_key_code"
+    private static let customKeyLabelKey = "nimbusglide_custom_key_label"
+    private static let autoCopyKey       = "nimbusglide_auto_copy"
+    private static let statusIndicatorKey = "nimbusglide_status_indicator"
 
     @Published var llmModel: String {
         didSet { UserDefaults.standard.set(llmModel, forKey: Self.llmModelKey) }
@@ -52,17 +50,12 @@ class SettingsManager: ObservableObject {
         didSet { UserDefaults.standard.set(autoCopyToClipboard, forKey: Self.autoCopyKey) }
     }
 
-    init() {
-        // Load API key from bundled Secrets.plist
-        if let url = Bundle.main.url(forResource: "Secrets", withExtension: "plist"),
-           let data = try? Data(contentsOf: url),
-           let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
-           let key = dict["GroqAPIKey"] as? String, !key.isEmpty {
-            self.apiKey = key
-        } else {
-            self.apiKey = UserDefaults.standard.string(forKey: "flowx_groq_api_key")
-        }
+    /// Show floating status indicator overlay
+    @Published var showStatusIndicator: Bool {
+        didSet { UserDefaults.standard.set(showStatusIndicator, forKey: Self.statusIndicatorKey) }
+    }
 
+    init() {
         let savedModel = UserDefaults.standard.string(forKey: Self.llmModelKey) ?? ""
         if savedModel == "llama-3.1-8b-instant" || savedModel.isEmpty {
             self.llmModel = GroqModel.llama33_70b.rawValue
@@ -74,16 +67,13 @@ class SettingsManager: ObservableObject {
            let choice = HotkeyChoice(rawValue: saved) {
             self.hotkey = choice
         } else {
-            self.hotkey = .rightOption
+            self.hotkey = .fn
         }
 
         self.customKeyCode  = UInt16(UserDefaults.standard.integer(forKey: Self.customKeyCodeKey))
         self.customKeyLabel = UserDefaults.standard.string(forKey: Self.customKeyLabelKey) ?? "—"
         self.autoCopyToClipboard = UserDefaults.standard.object(forKey: Self.autoCopyKey) as? Bool ?? false
+        self.showStatusIndicator = UserDefaults.standard.object(forKey: Self.statusIndicatorKey) as? Bool ?? true
     }
 
-    var hasValidAPIKey: Bool {
-        guard let key = apiKey else { return false }
-        return !key.isEmpty
-    }
 }

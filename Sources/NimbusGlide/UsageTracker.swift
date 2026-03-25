@@ -2,40 +2,46 @@ import Foundation
 import SwiftUI
 
 class UsageTracker: ObservableObject {
-    private static let wordCountKey = "flowx_total_word_count"
-    private static let isPaidKey = "flowx_is_paid"
-
-    static let freeWordLimit = 2_000
-
-    @Published var totalWordsUsed: Int {
-        didSet { UserDefaults.standard.set(totalWordsUsed, forKey: Self.wordCountKey) }
-    }
-
-    @Published var isPaid: Bool {
-        didSet { UserDefaults.standard.set(isPaid, forKey: Self.isPaidKey) }
-    }
-
-    init() {
-        self.totalWordsUsed = UserDefaults.standard.integer(forKey: Self.wordCountKey)
-        self.isPaid = UserDefaults.standard.bool(forKey: Self.isPaidKey)
-    }
+    @Published var totalWordsUsed: Int = 0
+    @Published var wordLimit: Int? = 2000
+    @Published var plan: String = "free"
 
     var wordsRemaining: Int {
-        max(0, Self.freeWordLimit - totalWordsUsed)
+        guard let limit = wordLimit else { return 0 } // unlimited (pro) — not displayed
+        return max(0, limit - totalWordsUsed)
     }
 
     var usageRatio: Double {
-        min(1.0, Double(totalWordsUsed) / Double(Self.freeWordLimit))
+        guard let limit = wordLimit, limit > 0 else { return 0.0 }
+        return min(1.0, Double(totalWordsUsed) / Double(limit))
     }
 
     var hasReachedLimit: Bool {
-        !isPaid && totalWordsUsed >= Self.freeWordLimit
+        guard let limit = wordLimit else { return false } // unlimited (pro)
+        return totalWordsUsed >= limit
     }
 
-    func recordWords(_ text: String) {
-        let count = text.split(separator: " ").count
-        DispatchQueue.main.async {
-            self.totalWordsUsed += count
+    var isPro: Bool {
+        plan == "pro"
+    }
+
+    /// Sync full state from server user-status response
+    func syncFromServer(_ status: UserStatus) {
+        self.totalWordsUsed = status.wordsUsed
+        self.plan = status.plan
+        // Only update wordLimit if server returned a value; keep default 2000 otherwise
+        if status.plan == "pro" {
+            self.wordLimit = nil // unlimited
+        } else {
+            self.wordLimit = status.wordLimit ?? 2000
+        }
+    }
+
+    /// Update usage counters after a process call
+    func updateAfterProcess(_ result: ProcessResult) {
+        self.totalWordsUsed = result.wordsUsed
+        if let limit = result.wordLimit {
+            self.wordLimit = limit
         }
     }
 }

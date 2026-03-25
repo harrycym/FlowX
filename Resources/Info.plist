@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.flowx.app</string>
+	<string>com.nimbusglide.app</string>
 	<key>CFBundleName</key>
 	<string>NimbusGlide</string>
 	<key>CFBundlePackageType</key>
@@ -32,5 +32,16 @@
 	<string>https://raw.githubusercontent.com/harrycym/NimbusGlide/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>wNA1NzwwYXjqTttgcRyfGIIKPaB1H3IECiXTxOxJTss=</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>nimbusglide</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.nimbusglide.app</string>
+		</dict>
+	</array>
 </dict>
 </plist>

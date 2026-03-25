@@ -59,7 +59,7 @@ class NimbusGlidePipeline {
 
         DispatchQueue.main.async {
             self.pipelineState?.status = .recording
-            CursorManager.showMicCursor()
+            CursorManager.showRecordingCursor()
         }
     }
 
@@ -79,7 +79,7 @@ class NimbusGlidePipeline {
         isProcessing = true
 
         DispatchQueue.main.async {
-            CursorManager.restoreCursor()
+            CursorManager.showProcessingCursor()
             self.pipelineState?.status = .processing
         }
 
@@ -92,10 +92,12 @@ class NimbusGlidePipeline {
         Task {
             do {
                 let transcript = try await aiService.transcribeAudio(fileURL: recordingURL)
+                #if DEBUG
                 print("[NimbusGlide] Transcript: \(transcript)")
+                #endif
 
-                guard !transcript.isEmpty else {
-                    print("[NimbusGlide] Empty transcript, skipping")
+                guard !transcript.isEmpty, !Self.isWhisperHallucination(transcript) else {
+                    print("[NimbusGlide] Empty or hallucinated transcript, skipping")
                     await finish(status: .idle)
                     return
                 }
@@ -106,7 +108,9 @@ class NimbusGlidePipeline {
                     profileInstructions: profileInstructions,
                     memoryExamples: memoryExamples
                 )
+                #if DEBUG
                 print("[NimbusGlide] Result: \(result)")
+                #endif
 
                 guard !result.isEmpty else {
                     print("[NimbusGlide] Empty LLM result, skipping")
@@ -135,6 +139,24 @@ class NimbusGlidePipeline {
 
                 await finish(status: .idle)
 
+            } catch let error as NimbusGlideError where error == .usageLimitReached {
+                print("[NimbusGlide] Usage limit reached")
+                await MainActor.run {
+                    pipelineState?.status = .idle
+                    pipelineState?.usageLimitHit = true
+                    // Bring app window to front immediately
+                    if let window = NSApp.windows.first(where: { $0.title == "NimbusGlide" }) {
+                        window.makeKeyAndOrderFront(nil)
+                    } else {
+                        // Window might be hidden — open it
+                        for window in NSApp.windows where window.canBecomeKey {
+                            window.makeKeyAndOrderFront(nil)
+                            break
+                        }
+                    }
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                await finish(status: .idle)
             } catch {
                 print("[NimbusGlide] Pipeline error: \(error.localizedDescription)")
                 await MainActor.run {
@@ -148,9 +170,33 @@ class NimbusGlidePipeline {
         }
     }
 
+    /// Whisper hallucinates short phrases on silence — filter them out
+    private static func isWhisperHallucination(_ text: String) -> Bool {
+        let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        // Too short to be real speech (under 4 words)
+        let wordCount = cleaned.split(separator: " ").count
+        if wordCount > 4 { return false }
+
+        let hallucinations: Set<String> = [
+            "thank you", "thank you.", "thanks.", "thanks",
+            "bye", "bye.", "bye bye", "bye-bye", "goodbye", "goodbye.",
+            "thanks for watching", "thanks for watching.",
+            "thank you for watching", "thank you for watching.",
+            "see you", "see you.", "see you next time",
+            "subscribe", "like and subscribe",
+            "you", "the end", "the end.",
+            "so", "okay", "okay.", "ok", "ok.",
+            "yeah", "yeah.", "yes", "yes.", "no", "no.",
+            "hmm", "hmm.", "hm", "um", "uh",
+            "...", ".", "",
+        ]
+        return hallucinations.contains(cleaned)
+    }
+
     @MainActor
     private func finish(status: PipelineStatus) {
         isProcessing = false
+        CursorManager.restoreCursor()
         menuBarManager?.updateStatus(status.rawValue)
         // Only set idle if we're finishing successfully — error state is set in catch
         if status == .idle {

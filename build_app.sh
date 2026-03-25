@@ -40,9 +40,20 @@ if [ -f "$SCRIPT_DIR/Resources/Secrets.plist" ]; then
     echo "==> Bundled Secrets.plist"
 fi
 
+# Bundle Sparkle framework
+SPARKLE_PATH=$(find "$SCRIPT_DIR/.build" -name "Sparkle.framework" -type d 2>/dev/null | head -1)
+if [ -n "$SPARKLE_PATH" ]; then
+    mkdir -p "$CONTENTS/Frameworks"
+    cp -R "$SPARKLE_PATH" "$CONTENTS/Frameworks/"
+    echo "==> Bundled Sparkle.framework"
+fi
+
+# Set rpath so the binary finds Sparkle.framework in Contents/Frameworks
+install_name_tool -add_rpath "@executable_path/../Frameworks" "$CONTENTS/MacOS/$APP_NAME" 2>/dev/null || true
+
 # Copy entitlements and sign
 if [ -f "$SCRIPT_DIR/$APP_NAME.entitlements" ]; then
-    SIGN_IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null | grep "NimbusGlide Dev" | head -1 | awk -F'"' '{print $2}')
+    SIGN_IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null | grep "NimbusGlide Dev" | head -1 | awk -F'"' '{print $2}' || true)
     if [ -n "$SIGN_IDENTITY" ]; then
         codesign --force --sign "$SIGN_IDENTITY" --entitlements "$SCRIPT_DIR/$APP_NAME.entitlements" "$APP_BUNDLE"
         echo "==> Signed with $SIGN_IDENTITY (stable identity)"

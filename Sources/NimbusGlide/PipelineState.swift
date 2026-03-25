@@ -14,7 +14,8 @@ class PipelineState: ObservableObject {
     @Published var lastTranscript: String?
     @Published var lastResult: String?
     @Published var errorMessage: String?
-    @Published var isAPIKeyConfigured: Bool = false
+    @Published var isAuthenticated: Bool = false
+    @Published var usageLimitHit: Bool = false
     @Published var isMicrophoneAuthorized: Bool = false
     @Published var isAccessibilityAuthorized: Bool = false
 

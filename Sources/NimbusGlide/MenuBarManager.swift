@@ -39,6 +39,14 @@ class MenuBarManager: NSObject, NSMenuDelegate {
         menu.addItem(statusMenuItem)
         menu.addItem(NSMenuItem.separator())
 
+        // Home (show main window) — at the top
+        let homeItem = NSMenuItem(title: "Home", action: #selector(showMainWindow), keyEquivalent: "o")
+        homeItem.image = NSImage(systemSymbolName: "house", accessibilityDescription: nil)
+        homeItem.target = self
+        menu.addItem(homeItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         // Profiles
         let profileMenuItem = NSMenuItem(title: "Profiles", action: nil, keyEquivalent: "")
         profileMenuItem.image = NSImage(systemSymbolName: "person.2", accessibilityDescription: nil)
@@ -64,12 +72,6 @@ class MenuBarManager: NSObject, NSMenuDelegate {
         menu.addItem(autoCopyItem)
 
         menu.addItem(NSMenuItem.separator())
-
-        // Show NimbusGlide
-        let showWindowItem = NSMenuItem(title: "Show NimbusGlide", action: #selector(showMainWindow), keyEquivalent: "o")
-        showWindowItem.image = NSImage(systemSymbolName: "macwindow", accessibilityDescription: nil)
-        showWindowItem.target = self
-        menu.addItem(showWindowItem)
 
         // Settings
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
@@ -107,6 +109,57 @@ class MenuBarManager: NSObject, NSMenuDelegate {
                 self?.handleStatusChange(status)
             }
             .store(in: &cancellables)
+
+        // Watch accessibility permission — show red warning in menu bar when not granted
+        pipeline.pipelineState?.$isAccessibilityAuthorized
+            .receive(on: RunLoop.main)
+            .sink { [weak self] granted in
+                self?.updateAccessibilityWarning(granted: granted)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateAccessibilityWarning(granted: Bool) {
+        guard let menu = statusItem.menu else { return }
+
+        // Remove existing warning if present
+        if let existing = menu.item(withTag: 999) {
+            menu.removeItem(existing)
+        }
+        if let existingSep = menu.item(withTag: 998) {
+            menu.removeItem(existingSep)
+        }
+
+        if !granted {
+            // Insert warning at top, after status line
+            let warning = NSMenuItem(title: "Accessibility Not Granted", action: #selector(openAccessibilitySettings), keyEquivalent: "")
+            warning.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil)
+            warning.image?.isTemplate = false
+            // Tint the image red
+            if let img = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil)?
+                .withSymbolConfiguration(.init(paletteColors: [.systemRed])) {
+                warning.image = img
+            }
+            warning.target = self
+            warning.tag = 999
+
+            let sep = NSMenuItem.separator()
+            sep.tag = 998
+
+            // Insert after the first item (status line) and its separator
+            let insertIndex = min(2, menu.items.count)
+            menu.insertItem(warning, at: insertIndex)
+            menu.insertItem(sep, at: insertIndex + 1)
+
+            // Also tint the menu bar icon
+            statusItem.button?.contentTintColor = .systemRed
+        }
+    }
+
+    @objc private func openAccessibilitySettings() {
+        NSWorkspace.shared.open(
+            URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        )
     }
     
     private func handleStatusChange(_ status: PipelineStatus) {
@@ -146,14 +199,14 @@ class MenuBarManager: NSObject, NSMenuDelegate {
             
         case .processing:
             button.alphaValue = 1.0
-            button.contentTintColor = .systemBlue
-            // Spin animation
-            let frames = ["arrow.2.circlepath", "arrow.3.trianglepath"]
+            button.contentTintColor = .systemPurple
+            // Sparkle animation cycling between icons
+            let frames = ["sparkles", "sparkle", "wand.and.stars"]
             setSymbol(frames[0])
-            animationTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+            animationTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 self.animationFrame += 1
-                self.setSymbol(frames[self.animationFrame % 2])
+                self.setSymbol(frames[self.animationFrame % frames.count])
             }
             
         case .error:
@@ -207,7 +260,7 @@ class MenuBarManager: NSObject, NSMenuDelegate {
     @objc private func showMainWindow() {
         if let window = NSApp.windows.first(where: { $0.title == "NimbusGlide" }) {
             window.makeKeyAndOrderFront(nil)
-        } else if let url = URL(string: "flowx://main") {
+        } else if let url = URL(string: "nimbusglide://main") {
             NSWorkspace.shared.open(url)
         }
         NSApp.activate(ignoringOtherApps: true)
@@ -215,7 +268,7 @@ class MenuBarManager: NSObject, NSMenuDelegate {
 
     @objc private func openHistory() {
         showMainWindow()
-        NotificationCenter.default.post(name: .flowxNavigateToHistory, object: nil)
+        NotificationCenter.default.post(name: .nimbusglideNavigateToHistory, object: nil)
     }
 
     @objc private func toggleAutoCopy(_ sender: NSMenuItem) {
@@ -225,7 +278,7 @@ class MenuBarManager: NSObject, NSMenuDelegate {
 
     @objc private func openSettings() {
         showMainWindow()
-        NotificationCenter.default.post(name: .flowxNavigateToSettings, object: nil)
+        NotificationCenter.default.post(name: .nimbusglideNavigateToSettings, object: nil)
     }
 
     @objc private func checkForUpdates() {

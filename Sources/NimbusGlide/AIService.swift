@@ -2,52 +2,58 @@ import Foundation
 
 class AIService {
     private let settingsManager: SettingsManager
+    private let authManager: AuthManager
     var usageTracker: UsageTracker?
 
-    init(settingsManager: SettingsManager) {
+    /// Cloudflare Worker URL — loaded from Secrets.plist via APIClient
+    private let workerURL: String
+
+    init(settingsManager: SettingsManager, apiClient: APIClient) {
         self.settingsManager = settingsManager
+        self.authManager = apiClient.authManager
+        self.workerURL = apiClient.workerURL
     }
 
-    // MARK: - Groq Whisper Transcription
+    // MARK: - Transcription (via Cloudflare Worker)
 
     func transcribeAudio(fileURL: URL) async throws -> String {
-        guard let apiKey = settingsManager.apiKey, !apiKey.isEmpty else {
-            throw NimbusGlideError.noAPIKey
-        }
+        let token = try await authManager.validAccessToken()
 
         let boundary = UUID().uuidString
-        var request = URLRequest(url: URL(string: "https://api.groq.com/openai/v1/audio/transcriptions")!)
+        var request = URLRequest(url: URL(string: "\(workerURL)/transcribe")!)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 30
 
         let audioData = try Data(contentsOf: fileURL)
-
         var body = Data()
-        body.appendMultipart(boundary: boundary, name: "model", value: "whisper-large-v3")
-        body.appendMultipart(boundary: boundary, name: "response_format", value: "text")
-        body.appendMultipartFile(boundary: boundary, name: "file", filename: fileURL.lastPathComponent, mimeType: "audio/wav", data: audioData)
+        body.appendMultipart(boundary: boundary, name: "file", filename: fileURL.lastPathComponent, mimeType: "audio/wav", data: audioData)
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-
         request.httpBody = body
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NimbusGlideError.networkError("Invalid response")
+        let httpResp = response as? HTTPURLResponse
+
+        if httpResp?.statusCode == 403 {
+            throw NimbusGlideError.usageLimitReached
         }
 
-        guard httpResponse.statusCode == 200 else {
-            let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw NimbusGlideError.apiError("Groq Whisper error (\(httpResponse.statusCode)): \(errorBody)")
+        guard httpResp?.statusCode == 200 else {
+            let errBody = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw NimbusGlideError.apiError("Transcription error: \(errBody)")
         }
 
-        let transcript = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let transcript = json["transcript"] as? String else {
+            throw NimbusGlideError.apiError("Invalid transcription response")
+        }
+
         return transcript
     }
 
-    // MARK: - Groq LLM Processing
+    // MARK: - LLM Processing (via Cloudflare Worker)
 
     func processWithLLM(
         transcript: String,
@@ -55,14 +61,7 @@ class AIService {
         profileInstructions: String?,
         memoryExamples: [MemoryEntry]
     ) async throws -> String {
-        guard let apiKey = settingsManager.apiKey, !apiKey.isEmpty else {
-            throw NimbusGlideError.noAPIKey
-        }
-
-        // Check usage limit
-        if let tracker = usageTracker, tracker.hasReachedLimit {
-            throw NimbusGlideError.usageLimitReached
-        }
+        let token = try await authManager.validAccessToken()
 
         let parsed = WakewordParser.parse(transcript)
         let systemPrompt = buildSystemPrompt(
@@ -90,41 +89,36 @@ class AIService {
             "max_tokens": 2048
         ]
 
-        var request = URLRequest(url: URL(string: "https://api.groq.com/openai/v1/chat/completions")!)
+        var request = URLRequest(url: URL(string: "\(workerURL)/process")!)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 15
         request.httpBody = try JSONSerialization.data(withJSONObject: payload)
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw NimbusGlideError.apiError("Groq LLM error: \(errorBody)")
+        guard let httpResp = response as? HTTPURLResponse, httpResp.statusCode == 200 else {
+            let errBody = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw NimbusGlideError.apiError("Processing error: \(errBody)")
         }
 
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let choices = json["choices"] as? [[String: Any]],
-              let firstChoice = choices.first,
-              let message = firstChoice["message"] as? [String: Any],
-              let content = message["content"] as? String else {
-            throw NimbusGlideError.apiError("Failed to parse Groq response")
+              let result = json["result"] as? String else {
+            throw NimbusGlideError.apiError("Invalid processing response")
         }
 
-        let result = content.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Track usage
-        if let tracker = usageTracker {
-            await MainActor.run { tracker.recordWords(result) }
+        // Update local usage counter from worker response
+        if let words = json["words"] as? Int, let tracker = usageTracker {
+            await MainActor.run {
+                tracker.totalWordsUsed += words
+            }
         }
 
-        // Guard against the model going into chatbot mode — if the output is
-        // drastically longer than the input and contains telltale phrases, discard it
+        // Guard against chatbot mode
         let chatbotPhrases = ["I'm here to help", "I don't have the capability", "text-based", "How can I", "What can I", "I'm a"]
         if case .noCommand = parsed {
-            let isChatbotResponse = chatbotPhrases.contains(where: { result.localizedCaseInsensitiveContains($0) })
-            if isChatbotResponse {
+            if chatbotPhrases.contains(where: { result.localizedCaseInsensitiveContains($0) }) {
                 return transcript
             }
         }
@@ -151,7 +145,7 @@ class AIService {
             prompt += """
             You are an expert transcription copyeditor.
             Your task is to take a raw, messy speech-to-text audio transcript and rewrite it into flawlessly flowing, grammatically correct text.
-            
+
             CRITICAL RULES:
             1. FIX MISTAKES: Resolve all stutters, mid-sentence self-corrections, and restarts smoothly.
                - Example Input: "I went to the beach, actually no, I'm going to the mall."
@@ -161,7 +155,7 @@ class AIService {
             4. KEEP ORIGINAL INTENT: Never answer questions asked in the transcript. Just transcribe the question perfectly.
             5. NO CHATBOT BEHAVIOR: You are a silent backend engine. NEVER output conversational prefixes like "Here is your text" or "Sure". ONLY output the finalized, flowing text.
             6. PRESERVE AUTHENTIC VOICE: NEVER sanitize, soften, or remove expletives, slang, or emotional language. If the speaker says "fucking", output "fucking". Preserve the speaker's raw personality exactly as spoken. Do NOT substitute or censor any words.
-            
+
             The final text is being injected directly into '\(activeApp)'.
             """
         }
@@ -183,16 +177,10 @@ class AIService {
     }
 }
 
-// MARK: - Multipart Helpers
+// MARK: - Multipart Helper
 
 private extension Data {
-    mutating func appendMultipart(boundary: String, name: String, value: String) {
-        append("--\(boundary)\r\n".data(using: .utf8)!)
-        append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-        append("\(value)\r\n".data(using: .utf8)!)
-    }
-
-    mutating func appendMultipartFile(boundary: String, name: String, filename: String, mimeType: String, data: Data) {
+    mutating func appendMultipart(boundary: String, name: String, filename: String, mimeType: String, data: Data) {
         append("--\(boundary)\r\n".data(using: .utf8)!)
         append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
         append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
@@ -203,8 +191,21 @@ private extension Data {
 
 // MARK: - Errors
 
-enum NimbusGlideError: LocalizedError {
+enum NimbusGlideError: LocalizedError, Equatable {
+    static func == (lhs: NimbusGlideError, rhs: NimbusGlideError) -> Bool {
+        switch (lhs, rhs) {
+        case (.noAPIKey, .noAPIKey), (.notAuthenticated, .notAuthenticated),
+             (.recordingFailed, .recordingFailed), (.usageLimitReached, .usageLimitReached):
+            return true
+        case (.networkError(let a), .networkError(let b)), (.apiError(let a), .apiError(let b)):
+            return a == b
+        default:
+            return false
+        }
+    }
+
     case noAPIKey
+    case notAuthenticated
     case networkError(String)
     case apiError(String)
     case recordingFailed
@@ -214,6 +215,8 @@ enum NimbusGlideError: LocalizedError {
         switch self {
         case .noAPIKey:
             return "NimbusGlide is not configured correctly. Please reinstall."
+        case .notAuthenticated:
+            return "Please sign in to use NimbusGlide."
         case .networkError(let msg):
             return "Connection issue: \(msg)"
         case .apiError(let msg):

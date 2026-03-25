@@ -14,6 +14,10 @@ struct NimbusGlideApp: App {
                 .environmentObject(appDelegate.settingsManager)
                 .environmentObject(appDelegate.updateChecker)
                 .environmentObject(appDelegate.usageTracker)
+                .environmentObject(appDelegate.authManager)
+                .onOpenURL { url in
+                    appDelegate.authManager.handleCallback(url: url)
+                }
         }
         .defaultSize(width: 700, height: 480)
 
@@ -25,6 +29,7 @@ struct NimbusGlideApp: App {
                 .environmentObject(appDelegate.updateChecker)
                 .environmentObject(appDelegate.pipelineState)
                 .environmentObject(appDelegate.usageTracker)
+                .environmentObject(appDelegate.authManager)
         }
     }
 }

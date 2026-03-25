@@ -15,8 +15,8 @@ struct Profile: Identifiable, Codable, Equatable {
 }
 
 class ProfileManager: ObservableObject {
-    private static let profilesKey = "flowx_profiles"
-    private static let activeProfileKey = "flowx_active_profile"
+    private static let profilesKey = "nimbusglide_profiles"
+    private static let activeProfileKey = "nimbusglide_active_profile"
 
     @Published var profiles: [Profile] {
         didSet { save() }

@@ -1,8 +1,11 @@
 .build/
-FlowX.app/
+NimbusGlide.app/
+*.app
 *.o
 *.d
 *.swp
 .DS_Store
 /tmp/
 Resources/Secrets.plist
+worker/.wrangler/
+worker/node_modules/

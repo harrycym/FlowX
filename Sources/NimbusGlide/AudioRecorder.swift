@@ -5,6 +5,14 @@ class AudioRecorder: NSObject {
     private var audioRecorder: AVAudioRecorder?
     private(set) var isRecording = false
     private(set) var lastRecordingURL: URL?
+    private(set) var recordingStartTime: Date?
+    private var maxDurationTimer: Timer?
+
+    /// Maximum recording duration in seconds
+    static let maxDuration: TimeInterval = 180 // 3 minutes
+
+    /// Called when recording auto-stops at max duration
+    var onMaxDurationReached: (() -> Void)?
 
     private var recordingDirectory: URL {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("NimbusGlide", isDirectory: true)
@@ -32,7 +40,16 @@ class AudioRecorder: NSObject {
             audioRecorder?.record()
             isRecording = true
             lastRecordingURL = url
+            recordingStartTime = Date()
             playStartSound()
+
+            // Auto-stop after max duration
+            maxDurationTimer = Timer.scheduledTimer(withTimeInterval: Self.maxDuration, repeats: false) { [weak self] _ in
+                guard let self, self.isRecording else { return }
+                print("[NimbusGlide] Max recording duration reached (3 min)")
+                self.onMaxDurationReached?()
+            }
+
             print("[NimbusGlide] Recording started: \(url.lastPathComponent)")
         } catch {
             print("[NimbusGlide] Failed to start recording: \(error.localizedDescription)")
@@ -44,6 +61,8 @@ class AudioRecorder: NSObject {
 
         recorder.stop()
         isRecording = false
+        maxDurationTimer?.invalidate()
+        maxDurationTimer = nil
         playStopSound()
         print("[NimbusGlide] Recording stopped: \(lastRecordingURL?.lastPathComponent ?? "unknown")")
         return lastRecordingURL
@@ -52,6 +71,15 @@ class AudioRecorder: NSObject {
     func cleanup() {
         if let url = lastRecordingURL {
             try? FileManager.default.removeItem(at: url)
+        }
+    }
+
+    /// Removes any stale .wav files left behind by a previous crash.
+    func cleanupStaleRecordings() {
+        let dir = recordingDirectory
+        guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { return }
+        for file in files where file.pathExtension == "wav" {
+            try? FileManager.default.removeItem(at: file)
         }
     }
 
