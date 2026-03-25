@@ -79,8 +79,7 @@ class AIService {
         }
 
         guard httpResp?.statusCode == 200 else {
-            let errBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw NimbusGlideError.apiError("Transcription error: \(errBody)")
+            throw NimbusGlideError.apiError("Couldn't process your audio. Please try again.")
         }
 
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -150,8 +149,7 @@ class AIService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResp = response as? HTTPURLResponse, httpResp.statusCode == 200 else {
-            let errBody = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw NimbusGlideError.apiError("Processing error: \(errBody)")
+            throw NimbusGlideError.apiError("Couldn't process your text. Please try again.")
         }
 
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],

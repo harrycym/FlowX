@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.6.5</title>
-      <description><![CDATA[<p>Add profiles to plan limits, auto-clear stale auth error banners on home</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:59:04 +0000</pubDate>
-      <sparkle:version>1.6.5</sparkle:version>
-      <sparkle:shortVersionString>1.6.5</sparkle:shortVersionString>
+      <title>NimbusGlide 1.6.6</title>
+      <description><![CDATA[<p>Clean error messages - no raw JSON in error banners</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 14:00:55 +0000</pubDate>
+      <sparkle:version>1.6.6</sparkle:version>
+      <sparkle:shortVersionString>1.6.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.5/NimbusGlide.zip"
-        length="3063743"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.6/NimbusGlide.zip"
+        length="3063541"
         type="application/octet-stream"
-        sparkle:edSignature="KkPdPWTA72M9SacDPDM8/WojwBjpIGjzSKHz297pA6rfvyf56aTi19etCJkmUnJsNgOYKJJxXnkE4LuV7zkeDw=="
+        sparkle:edSignature="pYvwVPO5NXTT+yr23mma6RKVBNQre7DjhpbKFaFj0uOui1OjCavDeA7uHru4ys6dGZeC0rgxq9x0egp+cgXrCA=="
       />
     </item>
   </channel>
