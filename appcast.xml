@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.6.7</title>
-      <description><![CDATA[<p>Update test</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 14:16:01 +0000</pubDate>
-      <sparkle:version>1.6.7</sparkle:version>
-      <sparkle:shortVersionString>1.6.7</sparkle:shortVersionString>
+      <title>NimbusGlide 1.7.0</title>
+      <description><![CDATA[<p>Delete buttons for profiles/snippets/dictionary, bigger default window (860x580), larger fonts</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 14:19:25 +0000</pubDate>
+      <sparkle:version>1.7.0</sparkle:version>
+      <sparkle:shortVersionString>1.7.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.6.7/NimbusGlide.zip"
-        length="3072863"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.7.0/NimbusGlide.zip"
+        length="3081121"
         type="application/octet-stream"
-        sparkle:edSignature="6PAKG9HIaWHhFhVX0kexSGGn7rQ5oI2GxD6LapbClws6ao93AcDgxGlkZKn566YQA5PfqWNDf4ENbl5z+aIvDQ=="
+        sparkle:edSignature="eLUcQXP5AWVEOEkyKcqDuLF1mhCWB3yB7131g6ZEWsex/7TCJLu2FOoWwbZy3Eqqe8BwSbbld4epIZ9DyBzQAQ=="
       />
     </item>
   </channel>

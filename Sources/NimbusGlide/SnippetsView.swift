@@ -104,17 +104,27 @@ struct SnippetsView: View {
             } else {
                 List {
                     ForEach(snippetsManager.snippets) { snippet in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 6) {
                                 Text("\"\(snippet.trigger)\"")
-                                    .font(.callout.weight(.semibold))
+                                    .font(.body.weight(.semibold))
                                     .foregroundColor(NimbusColors.violet)
-                                Spacer()
+                                Text(snippet.expansion)
+                                    .font(.body)
+                                    .foregroundColor(NimbusColors.body)
+                                    .lineLimit(2)
                             }
-                            Text(snippet.expansion)
-                                .font(.callout)
-                                .foregroundColor(NimbusColors.body)
-                                .lineLimit(2)
+                            Spacer()
+                            Button(action: {
+                                if let idx = snippetsManager.snippets.firstIndex(where: { $0.id == snippet.id }) {
+                                    snippetsManager.delete(at: IndexSet(integer: idx))
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .font(.callout)
+                                    .foregroundColor(.red.opacity(0.6))
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.vertical, 4)
                     }

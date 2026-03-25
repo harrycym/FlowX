@@ -61,7 +61,7 @@ struct MainWindowView: View {
                 detail
                     .background(NimbusColors.warmBg)
             }
-            .frame(minWidth: 700, minHeight: 500)
+            .frame(minWidth: 800, minHeight: 540)
             .onReceive(NotificationCenter.default.publisher(for: .nimbusglideNavigateToSettings)) { _ in
                 selectedItem = .settings
             }

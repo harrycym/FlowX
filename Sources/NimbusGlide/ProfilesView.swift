@@ -58,7 +58,12 @@ struct ProfilesView: View {
                 ProfileEditor(
                     profile: $profileManager.profiles[index],
                     isActive: id == profileManager.activeProfileId,
-                    onSetActive: { profileManager.activeProfileId = id }
+                    onSetActive: { profileManager.activeProfileId = id },
+                    onDelete: {
+                        let offsets = IndexSet(integer: index)
+                        profileManager.deleteProfile(at: offsets)
+                        selectedProfileId = profileManager.profiles.first?.id
+                    }
                 )
             } else {
                 VStack(spacing: 8) {
@@ -131,6 +136,8 @@ private struct ProfileEditor: View {
     @Binding var profile: Profile
     let isActive: Bool
     let onSetActive: () -> Void
+    let onDelete: () -> Void
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -141,12 +148,26 @@ private struct ProfileEditor: View {
 
                 if isActive {
                     Label("Active", systemImage: "checkmark.circle.fill")
-                        .font(.caption.weight(.medium))
+                        .font(.callout.weight(.medium))
                         .foregroundColor(.accentColor)
                 } else {
                     Button("Set Active") { onSetActive() }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
+                }
+
+                Button(role: .destructive, action: { showDeleteConfirm = true }) {
+                    Image(systemName: "trash")
+                        .font(.callout)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.red.opacity(0.7))
+                .help("Delete this profile")
+                .alert("Delete \"\(profile.name)\"?", isPresented: $showDeleteConfirm) {
+                    Button("Delete", role: .destructive) { onDelete() }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This profile will be permanently deleted.")
                 }
             }
 

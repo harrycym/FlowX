@@ -134,6 +134,16 @@ struct DictionaryView: View {
                                 .font(.body.weight(.medium))
                                 .foregroundColor(NimbusColors.ready)
                             Spacer()
+                            Button(action: {
+                                if let idx = dictionaryManager.entries.firstIndex(where: { $0.id == entry.id }) {
+                                    dictionaryManager.delete(at: IndexSet(integer: idx))
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .font(.callout)
+                                    .foregroundColor(.red.opacity(0.6))
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.vertical, 4)
                     }
