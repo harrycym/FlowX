@@ -26,5 +26,9 @@
     <string>13.0</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/harrycym/FlowX/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string></string>
 </dict>
 </plist>

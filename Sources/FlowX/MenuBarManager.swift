@@ -7,6 +7,7 @@ class MenuBarManager: NSObject, NSMenuDelegate {
     private let pipeline: FlowXPipeline
     private let settingsManager: SettingsManager
     private let profileManager: ProfileManager
+    var updateChecker: UpdateChecker?
     private var cancellables = Set<AnyCancellable>()
     private var profileSubmenu: NSMenu!
 
@@ -75,6 +76,12 @@ class MenuBarManager: NSObject, NSMenuDelegate {
         settingsItem.image = NSImage(systemSymbolName: "gear", accessibilityDescription: nil)
         settingsItem.target = self
         menu.addItem(settingsItem)
+
+        // Check for Updates
+        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: nil)
+        updateItem.target = self
+        menu.addItem(updateItem)
 
         // About
         let aboutItem = NSMenuItem(title: "About FlowX", action: #selector(showAbout), keyEquivalent: "")
@@ -219,6 +226,10 @@ class MenuBarManager: NSObject, NSMenuDelegate {
     @objc private func openSettings() {
         showMainWindow()
         NotificationCenter.default.post(name: .flowxNavigateToSettings, object: nil)
+    }
+
+    @objc private func checkForUpdates() {
+        updateChecker?.checkForUpdates()
     }
 
     @objc private func showAbout() {

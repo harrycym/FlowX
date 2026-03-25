@@ -58,6 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         menuBarManager = MenuBarManager(pipeline: pipeline, settingsManager: settingsManager, profileManager: profileManager)
+        menuBarManager.updateChecker = updateChecker
         pipeline.menuBarManager = menuBarManager
         pipeline.pipelineState = pipelineState
         pipeline.settingsManager = settingsManager

@@ -14,7 +14,7 @@ struct AppSettingsView: View {
                         Label("Hotkey", systemImage: "keyboard")
                             .font(.headline)
 
-                        Text("Hold this key to record, release to process.")
+                        Text("Hold this key to dictate, release to process.")
                             .font(.caption)
                             .foregroundColor(.secondary)
 
@@ -25,6 +25,11 @@ struct AppSettingsView: View {
                         }
                         .pickerStyle(.radioGroup)
                         .labelsHidden()
+
+                        if settingsManager.hotkey == .custom {
+                            HotkeyRecorderRow()
+                                .environmentObject(settingsManager)
+                        }
                     }
                     .padding(4)
                 }
