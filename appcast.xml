@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.1.1</title>
-      <description><![CDATA[<p>Security hardening, real Keychain storage, encrypted history, auth system, Durable Object rate limiting, fuzzy wake word detection</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 11:38:23 +0000</pubDate>
-      <sparkle:version>1.1.1</sparkle:version>
-      <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+      <title>NimbusGlide 1.1.2</title>
+      <description><![CDATA[<p>Bring app to front after Sparkle update</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 11:45:03 +0000</pubDate>
+      <sparkle:version>1.1.2</sparkle:version>
+      <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.1.1/NimbusGlide.zip"
-        length="2972934"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.1.2/NimbusGlide.zip"
+        length="2953796"
         type="application/octet-stream"
-        sparkle:edSignature="OkARhzjwwfCrKXL5saKbnaJ3t/NZMbiB683DJ0tJ2c42PCHs+UyCFo2zmThHR43tjsueyXLMzSbxyb8UHLFyAQ=="
+        sparkle:edSignature="oPfSFUnbvigNON9Jx1JkF1ZzsD+L6sYQFloiu3Qkq6Xg07g5sF1nQQGVn2E9g2+MoQncrm0dN8qUC7E3YvcoCQ=="
       />
     </item>
   </channel>

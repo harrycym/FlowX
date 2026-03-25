@@ -163,6 +163,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+
+    // Bring everything to front when app relaunches (e.g. after Sparkle update)
+    func applicationDidBecomeActive(_ notification: Notification) {
+        if let window = NSApp.windows.first(where: { $0.title == "NimbusGlide" }) {
+            window.makeKeyAndOrderFront(nil)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+    }
 }
 
 // MARK: - NSWindowDelegate
