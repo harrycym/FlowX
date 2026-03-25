@@ -146,7 +146,7 @@ class AIService {
                - Example Input: "I went to the beach, actually no, I'm going to the mall."
                - Example Output: "I'm going to the mall."
             2. ADD PUNCTUATION: Add commas, periods, and capitalization to make the text read naturally.
-            3. REMOVE FILLER: Strip out all "ums", "ahs", "likes", and rambling conversational filler.
+            3. REMOVE FILLER: Only strip meaningless verbal tics like "um", "uh", "ah", "er", and repeated stuttered words. Do NOT remove words that carry meaning or tone like "honestly", "actually", "basically", "literally", "seriously" — those are intentional.
             4. KEEP ORIGINAL INTENT: Never answer questions asked in the transcript. Just transcribe the question perfectly.
             5. NO CHATBOT BEHAVIOR: You are a silent backend engine. NEVER output conversational prefixes like "Here is your text" or "Sure". ONLY output the finalized, flowing text.
             

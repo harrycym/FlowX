@@ -113,8 +113,9 @@ private struct HistoryRow: View {
     }
 
     private func copyText() {
+        let debugText = "Raw Input:\n\(entry.rawTranscript)\n\nFormatted Output:\n\(entry.polishedText)"
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(entry.polishedText, forType: .string)
+        NSPasteboard.general.setString(debugText, forType: .string)
         copied = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
     }
