@@ -9,7 +9,7 @@ class AudioRecorder: NSObject {
     private var maxDurationTimer: Timer?
 
     /// Maximum recording duration in seconds
-    static let maxDuration: TimeInterval = 180 // 3 minutes
+    static let maxDuration: TimeInterval = 600 // 10 minutes
 
     /// Called when recording auto-stops at max duration
     var onMaxDurationReached: (() -> Void)?
