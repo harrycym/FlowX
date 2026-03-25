@@ -13,12 +13,18 @@ class SnippetsManager: ObservableObject {
         didSet { save() }
     }
 
+    private static let defaultSnippets: [Snippet] = [
+        Snippet(trigger: "my address", expansion: "742 Evergreen Terrace, Springfield, IL 62704"),
+        Snippet(trigger: "my bio", expansion: "Software engineer and entrepreneur passionate about building AI-powered tools that make everyday tasks effortless. Previously at Google, now focused on creating the future of voice interfaces."),
+        Snippet(trigger: "my sign off", expansion: "Best regards, and thank you for your time. Please don't hesitate to reach out if you have any questions or need anything else from me."),
+    ]
+
     init() {
         if let data = UserDefaults.standard.data(forKey: Self.storageKey),
            let decoded = try? JSONDecoder().decode([Snippet].self, from: data) {
             self.snippets = decoded
         } else {
-            self.snippets = []
+            self.snippets = Self.defaultSnippets
         }
     }
 

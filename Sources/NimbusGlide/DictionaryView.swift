@@ -13,12 +13,18 @@ class DictionaryManager: ObservableObject {
         didSet { save() }
     }
 
+    private static let defaultEntries: [DictionaryEntry] = [
+        DictionaryEntry(wrong: "chat gpt", correct: "ChatGPT"),
+        DictionaryEntry(wrong: "iphone", correct: "iPhone"),
+        DictionaryEntry(wrong: "linkedin", correct: "LinkedIn"),
+    ]
+
     init() {
         if let data = UserDefaults.standard.data(forKey: Self.storageKey),
            let decoded = try? JSONDecoder().decode([DictionaryEntry].self, from: data) {
             self.entries = decoded
         } else {
-            self.entries = []
+            self.entries = Self.defaultEntries
         }
     }
 

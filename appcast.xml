@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.4.2</title>
-      <description><![CDATA[<p>Force light mode, revert dark mode changes, fix text visibility</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 13:06:32 +0000</pubDate>
-      <sparkle:version>1.4.2</sparkle:version>
-      <sparkle:shortVersionString>1.4.2</sparkle:shortVersionString>
+      <title>NimbusGlide 1.4.3</title>
+      <description><![CDATA[<p>Default dictionary corrections and snippet examples for new users</p>]]></description>
+      <pubDate>Wed, 25 Mar 2026 13:23:03 +0000</pubDate>
+      <sparkle:version>1.4.3</sparkle:version>
+      <sparkle:shortVersionString>1.4.3</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.4.2/NimbusGlide.zip"
-        length="3027461"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.4.3/NimbusGlide.zip"
+        length="3028390"
         type="application/octet-stream"
-        sparkle:edSignature="mIEhtJBSRr4xkaH/i9i0JsOQvyzJrm+/7Ebtxq6MzT1NzKe/FQ6kfCfqoXL1tI8Mc/4YcjyPMqVBRVU7FZnAAA=="
+        sparkle:edSignature=""
       />
     </item>
   </channel>
