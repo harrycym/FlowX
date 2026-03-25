@@ -22,7 +22,7 @@ struct NimbusGlideApp: App {
                     appDelegate.authManager.handleCallback(url: url)
                 }
         }
-        .defaultSize(width: 860, height: 580)
+        .defaultSize(width: 960, height: 680)
 
         Settings {
             SettingsView()

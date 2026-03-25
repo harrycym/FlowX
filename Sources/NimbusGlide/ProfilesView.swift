@@ -187,7 +187,9 @@ private struct ProfileEditor: View {
                         .stroke(Color.secondary.opacity(0.2))
                 )
         }
-        .padding(20)
+        .padding(.horizontal, 24)
+        .padding(.top, 32)
+        .padding(.bottom, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
