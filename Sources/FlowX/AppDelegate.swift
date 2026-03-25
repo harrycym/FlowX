@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let settingsManager = SettingsManager()
     let pipelineState = PipelineState()
     let updateChecker = UpdateChecker()
+    let usageTracker = UsageTracker()
     var pipeline: FlowXPipeline!
 
     private var cancellables = Set<AnyCancellable>()
@@ -45,6 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         keystrokeSimulator = KeystrokeSimulator()
         audioRecorder = AudioRecorder()
         aiService = AIService(settingsManager: settingsManager)
+        aiService.usageTracker = usageTracker
 
         pipeline = FlowXPipeline(
             audioRecorder: audioRecorder,
@@ -64,14 +66,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.pipeline.toggleRecording()
         }
 
-        // Keep pipelineState.isAPIKeyConfigured in sync with settingsManager
+        // API key is bundled — just set the state once
         pipelineState.isAPIKeyConfigured = settingsManager.hasValidAPIKey
-        settingsManager.$apiKey
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.pipelineState.isAPIKeyConfigured = self?.settingsManager.hasValidAPIKey ?? false
-            }
-            .store(in: &cancellables)
 
         // Start monitoring permissions (refreshes on activation + polls until granted)
         pipelineState.refreshPermissions()
@@ -101,9 +97,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Auto-show main window on launch
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             if let window = NSApp.windows.first(where: { $0.title == "FlowX" }) {
+                window.delegate = self
                 window.makeKeyAndOrderFront(nil)
             }
             NSApp.activate(ignoringOtherApps: true)
         }
+    }
+}
+
+// MARK: - NSWindowDelegate
+
+extension AppDelegate: NSWindowDelegate {
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        sender.orderOut(nil) // Hide window without quitting
+        return false
     }
 }
