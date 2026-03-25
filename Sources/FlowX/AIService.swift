@@ -137,9 +137,8 @@ class AIService {
             prompt += "CRITICAL: Return ONLY the final edited text. NEVER output explanations, markdown, or conversational phrases like 'Here is the edited text'. "
             prompt += "The text is being injected directly into '\(activeApp)'."
         case .noCommand:
-        case .noCommand:
             prompt += """
-            You are an expert transcription copyeditor. 
+            You are an expert transcription copyeditor.
             Your task is to take a raw, messy speech-to-text audio transcript and rewrite it into flawlessly flowing, grammatically correct text.
             
             CRITICAL RULES:
