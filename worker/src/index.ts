@@ -2,6 +2,7 @@ export interface Env {
   GROQ_API_KEY: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  DEMO_RATE_LIMITER: DurableObjectNamespace;
 }
 
 // Cache JWKS keys in memory (persists across requests on same isolate)
@@ -28,35 +29,153 @@ export default {
 
     // Public demo endpoint — no auth, IP rate-limited
     if (path === "/demo") {
-      return await handleDemo(request, env);
+      try {
+        return await handleDemo(request, env, origin);
+      } catch (err) {
+        return jsonResponse({ error: (err as Error).message }, 500, origin);
+      }
     }
 
     try {
       const authHeader = request.headers.get("Authorization");
       if (!authHeader?.startsWith("Bearer ")) {
-        return jsonResponse({ error: "Missing authorization" }, 401);
+        return jsonResponse({ error: "Missing authorization" }, 401, origin);
       }
       const token = authHeader.slice(7);
 
       const payload = await verifyJWT(token, env.SUPABASE_URL);
       if (!payload) {
-        return jsonResponse({ error: "Invalid token" }, 401);
+        return jsonResponse({ error: "Invalid token" }, 401, origin);
       }
       const userId = payload.sub as string;
 
       switch (path) {
         case "/transcribe":
-          return await handleTranscribe(request, env, userId);
+          return await handleTranscribe(request, env, userId, origin);
         case "/process":
-          return await handleProcess(request, env, userId);
+          return await handleProcess(request, env, userId, origin);
+        case "/user-status":
+          return await handleUserStatus(env, userId, origin);
+        case "/create-checkout":
+          return await handleCreateCheckout(request, env, userId, origin);
         default:
-          return jsonResponse({ error: "Not found" }, 404);
+          return jsonResponse({ error: "Not found" }, 404, origin);
       }
     } catch (err) {
-      return jsonResponse({ error: (err as Error).message }, 500);
+      return jsonResponse({ error: (err as Error).message }, 500, origin);
     }
   },
 };
+
+// ============================================================
+// USER STATUS
+// ============================================================
+
+async function handleUserStatus(env: Env, userId: string, origin = "*"): Promise<Response> {
+  try {
+    // Fetch profile
+    const profileResp = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=email,display_name,avatar_url`,
+      {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      }
+    );
+    const profiles = (await profileResp.json()) as { email: string; display_name: string; avatar_url: string }[];
+    const profile = profiles?.[0];
+
+    // Fetch subscription
+    const subResp = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&select=plan,words_used,word_limit,status,current_period_end`,
+      {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      }
+    );
+    const subs = (await subResp.json()) as { plan: string; words_used: number; word_limit: number | null; status: string; current_period_end: string | null }[];
+    const sub = subs?.[0];
+
+    return jsonResponse({
+      user_id: userId,
+      email: profile?.email ?? "",
+      display_name: profile?.display_name ?? null,
+      avatar_url: profile?.avatar_url ?? null,
+      plan: sub?.plan ?? "free",
+      words_used: sub?.words_used ?? 0,
+      word_limit: sub?.word_limit ?? 2000,
+      subscription_status: sub?.status ?? "active",
+      current_period_end: sub?.current_period_end ?? null,
+    }, 200, origin);
+  } catch (err) {
+    return jsonResponse({ error: (err as Error).message }, 500, origin);
+  }
+}
+
+// ============================================================
+// CREATE CHECKOUT (Stripe — proxied through Worker)
+// ============================================================
+
+async function handleCreateCheckout(request: Request, env: Env, userId: string, origin = "*"): Promise<Response> {
+  // For now, return a friendly message until Stripe is fully wired
+  // When Stripe is set up, this will create a Checkout Session
+  const STRIPE_SECRET_KEY = (env as Record<string, string>)["STRIPE_SECRET_KEY"];
+  if (!STRIPE_SECRET_KEY) {
+    return jsonResponse({ error: "Payments coming soon!" }, 503, origin);
+  }
+
+  try {
+    // Get user email
+    const profileResp = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=email,stripe_customer_id`,
+      {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      }
+    );
+    const profiles = (await profileResp.json()) as { email: string; stripe_customer_id: string | null }[];
+    const profile = profiles?.[0];
+
+    let body: Record<string, unknown> = {};
+    try { body = (await request.json()) as Record<string, unknown>; } catch {}
+
+    const priceId = (body.price_id as string) || (env as Record<string, string>)["STRIPE_PRO_PRICE_ID"] || "";
+
+    // Create Stripe Checkout Session via Stripe API
+    const params = new URLSearchParams();
+    params.append("mode", "subscription");
+    params.append("line_items[0][price]", priceId);
+    params.append("line_items[0][quantity]", "1");
+    params.append("success_url", "https://nimbusglide.ai/success?session_id={CHECKOUT_SESSION_ID}");
+    params.append("cancel_url", "https://nimbusglide.ai/cancel");
+    params.append("metadata[supabase_user_id]", userId);
+    if (profile?.email) params.append("customer_email", profile.email);
+
+    const stripeResp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params.toString(),
+    });
+
+    if (!stripeResp.ok) {
+      const err = await stripeResp.text();
+      return jsonResponse({ error: `Stripe error: ${err}` }, 502, origin);
+    }
+
+    const session = (await stripeResp.json()) as { url: string };
+    return jsonResponse({ checkout_url: session.url }, 200, origin);
+  } catch (err) {
+    return jsonResponse({ error: (err as Error).message }, 500, origin);
+  }
+}
 
 // ============================================================
 // USAGE CHECK (fast Supabase REST call)
@@ -88,7 +207,7 @@ async function checkUsageLimit(env: Env, userId: string): Promise<{ allowed: boo
 // TRANSCRIBE
 // ============================================================
 
-async function handleTranscribe(request: Request, env: Env, userId: string): Promise<Response> {
+async function handleTranscribe(request: Request, env: Env, userId: string, origin = "*"): Promise<Response> {
   // Check usage limit before wasting a Groq call
   const usage = await checkUsageLimit(env, userId);
   if (!usage.allowed) {
@@ -96,13 +215,13 @@ async function handleTranscribe(request: Request, env: Env, userId: string): Pro
       error: "usage_limit_reached",
       words_used: usage.wordsUsed,
       word_limit: usage.wordLimit,
-    }, 403);
+    }, 403, origin);
   }
 
   const formData = await request.formData();
   const audioFile = formData.get("file");
   if (!audioFile || !(audioFile instanceof File)) {
-    return jsonResponse({ error: "No audio file" }, 400);
+    return jsonResponse({ error: "No audio file" }, 400, origin);
   }
 
   const groqForm = new FormData();
@@ -118,18 +237,18 @@ async function handleTranscribe(request: Request, env: Env, userId: string): Pro
 
   if (!groqResp.ok) {
     const errBody = await groqResp.text();
-    return jsonResponse({ error: `Groq error (${groqResp.status}): ${errBody}` }, 502);
+    return jsonResponse({ error: `Groq error (${groqResp.status}): ${errBody}` }, 502, origin);
   }
 
   const transcript = (await groqResp.text()).trim();
-  return jsonResponse({ transcript });
+  return jsonResponse({ transcript }, 200, origin);
 }
 
 // ============================================================
 // PROCESS
 // ============================================================
 
-async function handleProcess(request: Request, env: Env, userId: string): Promise<Response> {
+async function handleProcess(request: Request, env: Env, userId: string, origin = "*"): Promise<Response> {
   // Check usage limit
   const usage = await checkUsageLimit(env, userId);
   if (!usage.allowed) {
@@ -137,14 +256,14 @@ async function handleProcess(request: Request, env: Env, userId: string): Promis
       error: "usage_limit_reached",
       words_used: usage.wordsUsed,
       word_limit: usage.wordLimit,
-    }, 403);
+    }, 403, origin);
   }
 
   const body = (await request.json()) as Record<string, unknown>;
   const { model, messages, temperature, max_tokens } = body;
 
   if (!messages || !Array.isArray(messages)) {
-    return jsonResponse({ error: "messages required" }, 400);
+    return jsonResponse({ error: "messages required" }, 400, origin);
   }
 
   const groqResp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -163,7 +282,7 @@ async function handleProcess(request: Request, env: Env, userId: string): Promis
 
   if (!groqResp.ok) {
     const errBody = await groqResp.text();
-    return jsonResponse({ error: `Groq error: ${errBody}` }, 502);
+    return jsonResponse({ error: `Groq error: ${errBody}` }, 502, origin);
   }
 
   const groqJson = (await groqResp.json()) as {
@@ -175,7 +294,7 @@ async function handleProcess(request: Request, env: Env, userId: string): Promis
   // Update usage SYNCHRONOUSLY before returning — so the next request sees the updated count
   await updateUsageSync(env, userId, wordCount);
 
-  return jsonResponse({ result: resultText, words: wordCount });
+  return jsonResponse({ result: resultText, words: wordCount }, 200, origin);
 }
 
 // ============================================================
@@ -273,67 +392,130 @@ function reportUsageAsync(env: Env, userId: string, words: number) {
 }
 
 // ============================================================
-// DEMO ENDPOINT (public, rate-limited, no auth)
+// DEMO RATE LIMITER (Durable Object — atomic, single-threaded)
 // ============================================================
 
-// Rate limit store — keyed by both IP and device ID
-// In-memory (resets when isolate recycles), but device cookie adds persistence on client side
-const demoRateLimit: Map<string, { count: number; resetAt: number }> = new Map();
-const DEMO_MAX_REQUESTS = 5;
-const DEMO_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const DEMO_MAX_PER_USER = 5;        // per fingerprint or IP, per hour
+const DEMO_GLOBAL_MAX = 500;         // total demo requests per hour across all users
 const DEMO_MAX_AUDIO_BYTES = 5 * 1024 * 1024; // 5MB (~30s of audio)
 
-function checkDemoRate(key: string): boolean {
-  const now = Date.now();
-  const entry = demoRateLimit.get(key);
-  if (!entry || now > entry.resetAt) {
-    demoRateLimit.set(key, { count: 1, resetAt: now + DEMO_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= DEMO_MAX_REQUESTS) return false;
-  entry.count++;
-  return true;
-}
+export class DemoRateLimiter {
+  private counts: Map<string, number> = new Map();
+  private currentHour: number = 0;
 
-function getDeviceId(request: Request): string | null {
-  const cookie = request.headers.get("Cookie") || "";
-  const match = cookie.match(/ng_device=([a-f0-9-]+)/);
-  return match ? match[1] : null;
-}
-
-function generateDeviceId(): string {
-  // Simple UUID v4
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
-
-async function handleDemo(request: Request, env: Env): Promise<Response> {
-  if (request.method !== "POST") {
-    return jsonResponse({ error: "POST required" }, 405);
+  constructor(private state: DurableObjectState) {
+    // Restore persisted state on wake
+    state.blockConcurrencyWhile(async () => {
+      const stored = await state.storage.get<{ counts: [string, number][]; hour: number }>("data");
+      if (stored) {
+        const nowHour = Math.floor(Date.now() / 3_600_000);
+        if (stored.hour === nowHour) {
+          this.counts = new Map(stored.counts);
+          this.currentHour = stored.hour;
+        }
+        // else: stale data from a previous hour, start fresh
+      }
+    });
   }
 
+  async fetch(request: Request): Promise<Response> {
+    const { keys } = (await request.json()) as { keys: string[] };
+    const nowHour = Math.floor(Date.now() / 3_600_000);
+
+    // Reset all counters when the hour rolls over
+    if (nowHour !== this.currentHour) {
+      this.counts = new Map();
+      this.currentHour = nowHour;
+    }
+
+    // Atomically increment each key and check limits
+    const results: Record<string, { count: number; allowed: boolean }> = {};
+    for (const key of keys) {
+      const prev = this.counts.get(key) ?? 0;
+      const next = prev + 1;
+      this.counts.set(key, next);
+
+      const limit = key.startsWith("global:") ? DEMO_GLOBAL_MAX : DEMO_MAX_PER_USER;
+      results[key] = { count: next, allowed: next <= limit };
+    }
+
+    // Persist to durable storage (survives eviction)
+    await this.state.storage.put("data", {
+      counts: Array.from(this.counts.entries()),
+      hour: this.currentHour,
+    });
+
+    return new Response(JSON.stringify(results), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+// ============================================================
+// DEMO ENDPOINT (public, rate-limited via Durable Object, no auth)
+// ============================================================
+
+// Build a composite fingerprint from multiple request signals.
+async function buildFingerprint(request: Request): Promise<string> {
   const ip = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For") || "unknown";
-  let deviceId = getDeviceId(request);
-  const isNewDevice = !deviceId;
-  if (!deviceId) deviceId = generateDeviceId();
+  const asn = (request as unknown as { cf?: { asn?: number } }).cf?.asn ?? 0;
+  const ua = request.headers.get("User-Agent") || "";
+  const lang = request.headers.get("Accept-Language") || "";
+  const raw = `${ip}|${asn}|${ua}|${lang}`;
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
 
-  // Rate limit by BOTH IP and device — either one hitting the limit blocks the request
-  const ipAllowed = checkDemoRate(`ip:${ip}`);
-  const deviceAllowed = checkDemoRate(`dev:${deviceId}`);
-  if (!ipAllowed || !deviceAllowed) {
-    return jsonResponse({ error: "Rate limit exceeded. Try again in an hour." }, 429);
+async function checkDemoRateLimit(
+  env: Env,
+  request: Request,
+): Promise<{ allowed: boolean; reason?: string }> {
+  const ip = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For") || "unknown";
+  const fingerprint = await buildFingerprint(request);
+
+  // All rate limit checks go to a single DO instance for atomic consistency
+  const id = env.DEMO_RATE_LIMITER.idFromName("singleton");
+  const stub = env.DEMO_RATE_LIMITER.get(id);
+
+  const keys = [`global:hour`, `ip:${ip}`, `fp:${fingerprint}`];
+  const resp = await stub.fetch("https://rate-limiter/check", {
+    method: "POST",
+    body: JSON.stringify({ keys }),
+  });
+
+  const results = (await resp.json()) as Record<string, { count: number; allowed: boolean }>;
+
+  if (!results["global:hour"].allowed) {
+    return { allowed: false, reason: "Demo is busy right now. Please try again later." };
+  }
+  if (!results[`ip:${ip}`].allowed) {
+    return { allowed: false, reason: "Rate limit exceeded. Try again in an hour." };
+  }
+  if (!results[`fp:${fingerprint}`].allowed) {
+    return { allowed: false, reason: "Rate limit exceeded. Try again in an hour." };
+  }
+  return { allowed: true };
+}
+
+async function handleDemo(request: Request, env: Env, origin: string): Promise<Response> {
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "POST required" }, 405, origin);
+  }
+
+  // Atomic rate limit check via Durable Object
+  const rateCheck = await checkDemoRateLimit(env, request);
+  if (!rateCheck.allowed) {
+    return jsonResponse({ error: rateCheck.reason }, 429, origin);
   }
 
   const formData = await request.formData();
   const audioFile = formData.get("file");
   if (!audioFile || !(audioFile instanceof File)) {
-    return jsonResponse({ error: "No audio file" }, 400);
+    return jsonResponse({ error: "No audio file" }, 400, origin);
   }
 
   if (audioFile.size > DEMO_MAX_AUDIO_BYTES) {
-    return jsonResponse({ error: "Audio too long (30s max)" }, 413);
+    return jsonResponse({ error: "Audio too long (30s max)" }, 413, origin);
   }
 
   // Step 1: Transcribe
@@ -350,33 +532,27 @@ async function handleDemo(request: Request, env: Env): Promise<Response> {
 
   if (!transcribeResp.ok) {
     const errBody = await transcribeResp.text();
-    return jsonResponse({ error: `Transcription failed: ${errBody}` }, 502);
+    return jsonResponse({ error: `Transcription failed: ${errBody}` }, 502, origin);
   }
 
   const transcript = (await transcribeResp.text()).trim();
   if (!transcript) {
-    return jsonResponse({ error: "No speech detected" }, 400);
+    return jsonResponse({ error: "No speech detected" }, 400, origin);
   }
 
-  // Step 2: Detect wake word and process with LLM
-  // Check for "nimbus glide" or "nimbusglide" (case insensitive) in the transcript
-  const lowerTranscript = transcript.toLowerCase();
-  const wakePatterns = ["nimbus glide", "nimbusglide", "nimbus-glide"];
-  let wakeIndex = -1;
-  let wakeLength = 0;
-  for (const pattern of wakePatterns) {
-    const idx = lowerTranscript.indexOf(pattern);
-    if (idx !== -1) {
-      wakeIndex = idx;
-      wakeLength = pattern.length;
-      break;
-    }
-  }
+  // Step 2: Detect wake word with fuzzy phonetic matching
+  // Whisper often mistranscribes "Nimbus Glide" as "Nimbus Blood", "Nimbus Guide", etc.
+  const nimbusVariants = "nimbus|nimbis|nimbes|nimba|nimbas|nimbus's|nimbus'";
+  const glideVariants = "glide|guide|blood|flood|slide|glade|glyde|glied|glad|cloud|clide|clyde|glined|glowed|slied|glite|gloid|blude|blide|glood";
+  const wakeRegex = new RegExp(`(${nimbusVariants})[\\s,\\-.]*(?:${glideVariants})`, "i");
+  const wakeMatch = wakeRegex.exec(transcript);
 
   let systemPrompt: string;
   let userContent: string;
 
-  if (wakeIndex !== -1) {
+  if (wakeMatch) {
+    const wakeIndex = wakeMatch.index;
+    const wakeLength = wakeMatch[0].length;
     // Split: content before wake word = context, after = command
     const beforeWake = transcript.slice(0, wakeIndex).trim();
     const afterWake = transcript.slice(wakeIndex + wakeLength).trim();
@@ -427,7 +603,7 @@ Output ONLY the reformatted text. No explanations, no preamble.`;
   });
 
   if (!processResp.ok) {
-    return demoResponse({ transcript, polished: transcript, wakeWordDetected: wakeIndex !== -1 }, deviceId, isNewDevice);
+    return jsonResponse({ transcript, polished: transcript, wakeWordDetected: !!wakeMatch }, 200, origin);
   }
 
   const processJson = (await processResp.json()) as {
@@ -435,18 +611,7 @@ Output ONLY the reformatted text. No explanations, no preamble.`;
   };
   const polished = processJson.choices?.[0]?.message?.content?.trim() ?? transcript;
 
-  return demoResponse({ transcript, polished, wakeWordDetected: wakeIndex !== -1 }, deviceId, isNewDevice);
-}
-
-function demoResponse(data: unknown, deviceId: string, setCoookie: boolean): Response {
-  const resp = jsonResponse(data);
-  if (setCoookie) {
-    resp.headers.set(
-      "Set-Cookie",
-      `ng_device=${deviceId}; Path=/; Max-Age=31536000; SameSite=None; Secure`
-    );
-  }
-  return resp;
+  return jsonResponse({ transcript, polished, wakeWordDetected: !!wakeMatch }, 200, origin);
 }
 
 // ============================================================
@@ -556,12 +721,12 @@ function base64UrlDecodeStr(str: string): string {
   return atob(base64);
 }
 
-function jsonResponse(data: unknown, status = 200): Response {
+function jsonResponse(data: unknown, status = 200, origin = "*"): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Credentials": "true",
     },
   });
