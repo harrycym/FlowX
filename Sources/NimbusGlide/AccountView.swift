@@ -39,7 +39,7 @@ struct AccountView: View {
                             .font(NimbusFonts.bodyMedium)
                         Spacer()
                         Text(usageTracker.isPro ? "Pro" : "Free")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(NimbusFonts.bodyMedium)
                             .foregroundColor(usageTracker.isPro ? NimbusColors.violet : NimbusColors.muted)
                     }
 
@@ -69,7 +69,7 @@ struct AccountView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "bolt.fill")
                                 Text("Upgrade to Pro — from $3/mo")
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .font(NimbusFonts.bodyMedium)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
@@ -190,9 +190,9 @@ struct AccountView: View {
         if usageTracker.isPro {
             HStack(spacing: 4) {
                 Image(systemName: "bolt.fill")
-                    .font(.caption2)
+                    .font(NimbusFonts.small)
                 Text("PRO")
-                    .font(.caption.weight(.bold))
+                    .font(NimbusFonts.caption.weight(.bold))
             }
             .foregroundColor(.white)
             .padding(.horizontal, 12)
@@ -201,7 +201,7 @@ struct AccountView: View {
             .cornerRadius(14)
         } else {
             Text("FREE")
-                .font(.caption.weight(.bold))
+                .font(NimbusFonts.caption.weight(.bold))
                 .foregroundColor(NimbusColors.muted)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)

@@ -77,7 +77,7 @@ struct SnippetsView: View {
                 Spacer()
                 Button(action: { showAddSheet = true }) {
                     Label("Add Snippet", systemImage: "plus")
-                        .font(.callout.weight(.medium))
+                        .font(NimbusFonts.bodyMedium)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
@@ -93,10 +93,10 @@ struct SnippetsView: View {
                         .font(.system(size: 32, weight: .light))
                         .foregroundStyle(NimbusGradients.primary)
                     Text("No snippets yet")
-                        .font(.callout.weight(.medium))
+                        .font(NimbusFonts.bodyMedium)
                         .foregroundColor(NimbusColors.heading)
                     Text("Add trigger phrases that expand into longer text.")
-                        .font(.caption)
+                        .font(NimbusFonts.caption)
                         .foregroundColor(NimbusColors.muted)
                     Spacer()
                 }

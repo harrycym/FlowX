@@ -10,9 +10,9 @@ You are the **Planner**. You do NOT write code. Your job is to:
 
 ## Worktree Setup
 
-- **Planner (you):** `/Users/harry/Documents/apps/NimbusGlide` (main)
-- **Worker A:** `/Users/harry/Documents/apps/NimbusGlide-workerA` (feature-workerA)
-- **Worker B:** `/Users/harry/Documents/apps/NimbusGlide-workerB` (feature-workerB)
+- **Planner (you):** `/Users/harry/Developer/Apps/NimbusGlide` (main)
+- **Worker A:** `/Users/harry/Developer/Apps/NimbusGlide-workerA` (feature-workerA)
+- **Worker B:** `/Users/harry/Developer/Apps/NimbusGlide-workerB` (feature-workerB)
 - **Reviewer/Tester:** runs from this same directory (main)
 
 ## How to assign tasks

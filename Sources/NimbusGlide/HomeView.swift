@@ -132,7 +132,7 @@ struct HomeView: View {
                 .fill(statusDotColor)
                 .frame(width: 8, height: 8)
             Text(statusLabel)
-                .font(.caption.weight(.medium))
+                .font(NimbusFonts.caption.weight(.medium))
                 .foregroundColor(statusDotColor)
         }
         .padding(.horizontal, 10)
@@ -151,7 +151,7 @@ struct HomeView: View {
                     .foregroundColor(.white)
                 +
                 Text(hotkeyDisplay)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(NimbusFonts.sectionHeader.weight(.bold))
                     .foregroundColor(.white)
                 +
                 Text(" \u{2192} to dictate and let NimbusGlide format for you")
@@ -167,7 +167,7 @@ struct HomeView: View {
                     NotificationCenter.default.post(name: .nimbusglideNavigateToSettings, object: nil)
                 }) {
                     Text("Show me how")
-                        .font(.caption.weight(.semibold))
+                        .font(NimbusFonts.caption.weight(.semibold))
                         .foregroundColor(NimbusColors.heading)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 7)
@@ -239,7 +239,7 @@ struct HomeView: View {
                     .foregroundColor(NimbusColors.muted)
 
                 Text(hotkeyDisplay)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(NimbusFonts.caption.weight(.semibold))
                     .foregroundColor(NimbusColors.heading)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
@@ -265,7 +265,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Latest Result")
-                    .font(.caption.weight(.semibold))
+                    .font(NimbusFonts.caption.weight(.semibold))
                     .foregroundColor(NimbusColors.muted)
                     .tracking(0.5)
 
@@ -275,9 +275,9 @@ struct HomeView: View {
                     Button(action: copyResult) {
                         HStack(spacing: 4) {
                             Image(systemName: copiedResult ? "checkmark" : "doc.on.doc")
-                                .font(.caption2)
+                                .font(NimbusFonts.small)
                             Text(copiedResult ? "Copied" : "Copy")
-                                .font(.caption)
+                                .font(NimbusFonts.caption)
                         }
                         .foregroundColor(copiedResult ? NimbusColors.ready : NimbusColors.indigo)
                     }
@@ -300,13 +300,13 @@ struct HomeView: View {
 
                 if let result = pipelineState.lastResult, !result.isEmpty {
                     Text(result)
-                        .font(.body)
+                        .font(NimbusFonts.body)
                         .foregroundColor(NimbusColors.heading)
                         .textSelection(.enabled)
                         .padding(14)
                 } else {
                     Text("Your text will appear here...")
-                        .font(.body)
+                        .font(NimbusFonts.body)
                         .foregroundColor(NimbusColors.muted.opacity(0.6))
                         .padding(14)
                 }
@@ -362,11 +362,11 @@ struct HomeView: View {
                 .foregroundStyle(NimbusGradients.primary)
 
             Text("No dictations yet")
-                .font(.callout.weight(.medium))
+                .font(NimbusFonts.bodyMedium)
                 .foregroundColor(NimbusColors.heading)
 
             Text("Hold \(hotkeyDisplay) to start your first dictation.\nYour history will appear here.")
-                .font(.caption)
+                .font(NimbusFonts.caption)
                 .foregroundColor(NimbusColors.muted)
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
@@ -474,7 +474,7 @@ struct DictationRow: View {
             // Copy
             Button(action: copyText) {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    .font(.caption)
+                    .font(NimbusFonts.caption)
                     .foregroundColor(copied ? NimbusColors.ready : NimbusColors.muted)
             }
             .buttonStyle(.plain)
@@ -498,13 +498,13 @@ struct AccessibilityWarningBanner: View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(.white)
-                .font(.body.weight(.semibold))
+                .font(NimbusFonts.bodyMedium)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Accessibility Not Granted")
-                    .font(.callout.weight(.semibold))
+                    .font(NimbusFonts.bodyMedium)
                     .foregroundColor(.white)
                 Text("NimbusGlide can't paste text without this permission.")
-                    .font(.caption)
+                    .font(NimbusFonts.caption)
                     .foregroundColor(.white.opacity(0.9))
             }
             Spacer()

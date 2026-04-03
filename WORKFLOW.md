@@ -4,16 +4,16 @@
 
 ```bash
 # Terminal 1 - Planner
-cd /Users/harry/Documents/apps/NimbusGlide && claude
+cd /Users/harry/Developer/Apps/NimbusGlide && claude
 
 # Terminal 2 - Worker A
-cd /Users/harry/Documents/apps/NimbusGlide-workerA && claude
+cd /Users/harry/Developer/Apps/NimbusGlide-workerA && claude
 
 # Terminal 3 - Worker B
-cd /Users/harry/Documents/apps/NimbusGlide-workerB && claude
+cd /Users/harry/Developer/Apps/NimbusGlide-workerB && claude
 
 # Terminal 4 - Reviewer/Tester
-cd /Users/harry/Documents/apps/NimbusGlide && claude
+cd /Users/harry/Developer/Apps/NimbusGlide && claude
 ```
 
 ## Workflow
@@ -34,7 +34,7 @@ cd /Users/harry/Documents/apps/NimbusGlide && claude
 ## Cleanup (when done)
 
 ```bash
-cd /Users/harry/Documents/apps/NimbusGlide
+cd /Users/harry/Developer/Apps/NimbusGlide
 git worktree remove ../NimbusGlide-workerA
 git worktree remove ../NimbusGlide-workerB
 git branch -d feature-workerA feature-workerB

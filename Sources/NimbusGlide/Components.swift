@@ -138,7 +138,7 @@ struct UsageMeter: View {
                 Spacer()
                 if usageTracker.isPro {
                     Label("Pro", systemImage: "checkmark.seal.fill")
-                        .font(.caption2.weight(.medium))
+                        .font(NimbusFonts.small.weight(.medium))
                         .foregroundColor(NimbusColors.indigo)
                 } else {
                     Text("\(usageTracker.wordsRemaining.formatted()) left")
@@ -229,11 +229,11 @@ struct UpdateBanner: View {
                 .foregroundColor(.white)
             VStack(alignment: .leading, spacing: 2) {
                 Text("NimbusGlide \(version) available")
-                    .font(.callout.weight(.medium))
+                    .font(NimbusFonts.bodyMedium)
                     .foregroundColor(.white)
                 if let notes, !notes.isEmpty {
                     Text(notes)
-                        .font(.caption)
+                        .font(NimbusFonts.caption)
                         .foregroundColor(.white.opacity(0.85))
                         .lineLimit(1)
                 }
@@ -263,7 +263,7 @@ struct ErrorBanner: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(.white)
             Text(message)
-                .font(.callout)
+                .font(NimbusFonts.body)
                 .foregroundColor(.white)
                 .lineLimit(2)
             Spacer()
@@ -298,18 +298,18 @@ struct PermissionRow: View {
                 Spacer()
                 if granted {
                     Label("Granted", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
+                        .font(NimbusFonts.caption)
                         .foregroundColor(NimbusColors.ready)
                 } else {
                     Button("Grant Access", action: action)
-                        .font(.caption)
+                        .font(NimbusFonts.caption)
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                 }
             }
             if !granted, let hint {
                 Text(hint)
-                    .font(.caption2)
+                    .font(NimbusFonts.small)
                     .foregroundColor(NimbusColors.processing)
                     .padding(.leading, 32)
             }

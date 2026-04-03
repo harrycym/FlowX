@@ -48,7 +48,7 @@ struct AuthView: View {
                             .font(NimbusFonts.body)
                             .foregroundColor(NimbusColors.muted)
                         Text(email)
-                            .font(.callout.weight(.semibold))
+                            .font(NimbusFonts.bodyMedium)
 
                         TextField("Enter code", text: $otpCode)
                             .textFieldStyle(.roundedBorder)
@@ -61,7 +61,7 @@ struct AuthView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "checkmark.circle.fill")
                                 Text("Verify")
-                                    .font(.body.weight(.medium))
+                                    .font(NimbusFonts.bodyMedium)
                             }
                             .frame(maxWidth: 300)
                             .padding(.vertical, 11)
@@ -88,7 +88,7 @@ struct AuthView: View {
                                 Image(systemName: "g.circle.fill")
                                     .font(.title3)
                                 Text("Continue with Google")
-                                    .font(.body.weight(.medium))
+                                    .font(NimbusFonts.bodyMedium)
                             }
                             .frame(maxWidth: 300)
                             .padding(.vertical, 11)
@@ -121,7 +121,7 @@ struct AuthView: View {
                                     HStack(spacing: 8) {
                                         Image(systemName: "arrow.right.circle.fill")
                                         Text("Sign In / Sign Up")
-                                            .font(.body.weight(.medium))
+                                            .font(NimbusFonts.bodyMedium)
                                     }
                                     .frame(maxWidth: 300)
                                     .padding(.vertical, 11)
@@ -142,7 +142,7 @@ struct AuthView: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: "envelope")
                                     Text("Continue with Email")
-                                        .font(.body.weight(.medium))
+                                        .font(NimbusFonts.bodyMedium)
                                 }
                                 .frame(maxWidth: 300)
                                 .padding(.vertical, 11)

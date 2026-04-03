@@ -6,17 +6,17 @@
     <description>NimbusGlide update feed</description>
     <language>en</language>
     <item>
-      <title>NimbusGlide 1.9.0</title>
-      <description><![CDATA[<p>UI polish: unified design system across all views</p>]]></description>
-      <pubDate>Wed, 25 Mar 2026 22:16:41 +0000</pubDate>
-      <sparkle:version>1.9.0</sparkle:version>
-      <sparkle:shortVersionString>1.9.0</sparkle:shortVersionString>
+      <title>NimbusGlide 1.9.1</title>
+      <description><![CDATA[<p>Fix sidebar layout - widen sidebar to prevent title wrapping</p>]]></description>
+      <pubDate>Fri, 03 Apr 2026 07:36:14 +0000</pubDate>
+      <sparkle:version>1.9.1</sparkle:version>
+      <sparkle:shortVersionString>1.9.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.9.0/NimbusGlide.zip"
-        length="3075654"
+        url="https://github.com/harrycym/NimbusGlide/releases/download/v1.9.1/NimbusGlide.zip"
+        length="3078537"
         type="application/octet-stream"
-        sparkle:edSignature="3oztRS5AmdBooemUevQURVJv1MESOi8LmqfWirm11pfXXUYtQXuAgYiHALbE+GvZ2KugtpJRe37xC5AZUsR5CQ=="
+        sparkle:edSignature="b/3U70DpCYQmb2pSvu6hYyNEo3IAHsmo54sICPDv9OhTt2ZOCOSxxh+VY2apyiyTRWB+3wQrxBdxIebrfdZxAA=="
       />
     </item>
   </channel>

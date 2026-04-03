@@ -114,7 +114,7 @@ private struct ProfileRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(profile.name)
-                    .font(.body.weight(isActive ? .semibold : .regular))
+                    .font(isActive ? NimbusFonts.bodyMedium : NimbusFonts.body)
                 Text(profile.instructions)
                     .font(NimbusFonts.caption)
                     .foregroundColor(NimbusColors.muted)
@@ -149,7 +149,7 @@ private struct ProfileEditor: View {
 
                 if isActive {
                     Label("Active", systemImage: "checkmark.circle.fill")
-                        .font(.callout.weight(.medium))
+                        .font(NimbusFonts.bodyMedium)
                         .foregroundColor(NimbusColors.indigo)
                 } else {
                     Button("Set Active") { onSetActive() }
@@ -159,7 +159,7 @@ private struct ProfileEditor: View {
 
                 Button(role: .destructive, action: { showDeleteConfirm = true }) {
                     Image(systemName: "trash")
-                        .font(.callout)
+                        .font(NimbusFonts.body)
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(NimbusColors.error.opacity(0.7))
@@ -181,7 +181,7 @@ private struct ProfileEditor: View {
             }
 
             TextEditor(text: $profile.instructions)
-                .font(.body)
+                .font(NimbusFonts.body)
                 .padding(4)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
@@ -210,19 +210,19 @@ private struct AddProfileView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Name")
-                    .font(.subheadline.weight(.medium))
+                    .font(NimbusFonts.bodyMedium)
                 TextField("e.g. Professional Email", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Instructions")
-                    .font(.subheadline.weight(.medium))
+                    .font(NimbusFonts.bodyMedium)
                 Text("Tell NimbusGlide how to format your dictation with this profile.")
-                    .font(.caption)
+                    .font(NimbusFonts.caption)
                     .foregroundColor(NimbusColors.muted)
                 TextEditor(text: $instructions)
-                    .frame(height: 120)
+                    .frame(height: 180)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
                             .stroke(Color.secondary.opacity(0.2))
@@ -242,7 +242,7 @@ private struct AddProfileView: View {
                 .disabled(name.isEmpty)
             }
         }
-        .padding(24)
-        .frame(width: NimbusLayout.sheetWidth, height: 340)
+        .padding(NimbusLayout.contentPadding)
+        .frame(width: 560, height: 420)
     }
 }

@@ -61,7 +61,7 @@ enum NimbusLayout {
     static let cardRadius: CGFloat = 14
     static let buttonRadius: CGFloat = 24
     static let buttonSmallRadius: CGFloat = 8
-    static let sidebarWidth: CGFloat = 190
+    static let sidebarWidth: CGFloat = 220
     static let contentPadding: CGFloat = 32
     static let sheetWidth: CGFloat = 480
     static let emptyStateIconSize: CGFloat = 32
@@ -79,12 +79,12 @@ enum NimbusLayout {
 // MARK: - Typography
 
 enum NimbusFonts {
-    static let pageTitle: Font = .system(size: 22, weight: .bold)
-    static let sectionHeader: Font = .system(size: 15, weight: .semibold)
-    static let body: Font = .system(size: 14)
-    static let bodyMedium: Font = .system(size: 14, weight: .medium)
-    static let caption: Font = .system(size: 12)
-    static let small: Font = .system(size: 11)
+    static let pageTitle: Font = .system(size: 24, weight: .bold)
+    static let sectionHeader: Font = .system(size: 16, weight: .semibold)
+    static let body: Font = .system(size: 15)
+    static let bodyMedium: Font = .system(size: 15, weight: .medium)
+    static let caption: Font = .system(size: 13)
+    static let small: Font = .system(size: 12)
 }
 
 // MARK: - Card Style Modifier

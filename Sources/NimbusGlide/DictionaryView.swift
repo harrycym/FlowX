@@ -110,10 +110,10 @@ struct DictionaryView: View {
                         .font(.system(size: 32, weight: .light))
                         .foregroundStyle(NimbusGradients.primary)
                     Text("No corrections yet")
-                        .font(.callout.weight(.medium))
+                        .font(NimbusFonts.bodyMedium)
                         .foregroundColor(NimbusColors.heading)
                     Text("Add words that get misheard during dictation.")
-                        .font(.caption)
+                        .font(NimbusFonts.caption)
                         .foregroundColor(NimbusColors.muted)
                     Spacer()
                 }

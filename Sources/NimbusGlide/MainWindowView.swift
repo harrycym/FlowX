@@ -87,7 +87,7 @@ struct MainWindowView: View {
 
                 if usageTracker.isPro {
                     Text("Pro")
-                        .font(.caption2.weight(.bold))
+                        .font(NimbusFonts.small.weight(.bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -100,25 +100,26 @@ struct MainWindowView: View {
             .padding(.top, NimbusLayout.spacing12)
             .padding(.bottom, NimbusLayout.spacing8)
 
-            List(selection: $selectedItem) {
+            VStack(spacing: NimbusLayout.spacing4) {
                 ForEach(SidebarItem.topItems) { item in
-                    Label(item.rawValue, systemImage: item.icon)
-                        .tag(item)
+                    SidebarButton(item: item, isSelected: selectedItem == item) {
+                        selectedItem = item
+                    }
                 }
             }
-            .listStyle(.sidebar)
+            .padding(.horizontal, NimbusLayout.spacing8)
 
             Spacer()
 
-            // Bottom items — Settings & Account pinned above usage meter
-            List(selection: $selectedItem) {
+            VStack(spacing: NimbusLayout.spacing4) {
                 ForEach(SidebarItem.bottomItems) { item in
-                    Label(item.rawValue, systemImage: item.icon)
-                        .tag(item)
+                    SidebarButton(item: item, isSelected: selectedItem == item) {
+                        selectedItem = item
+                    }
                 }
             }
-            .listStyle(.sidebar)
-            .frame(height: 72)
+            .padding(.horizontal, NimbusLayout.spacing8)
+            .padding(.bottom, NimbusLayout.spacing4)
 
             Divider()
 
@@ -131,7 +132,7 @@ struct MainWindowView: View {
                 .padding(.horizontal, NimbusLayout.spacing12)
                 .padding(.bottom, NimbusLayout.spacing12)
         }
-        .navigationSplitViewColumnWidth(min: 170, ideal: NimbusLayout.sidebarWidth, max: 230)
+        .navigationSplitViewColumnWidth(NimbusLayout.sidebarWidth)
     }
 
     @ViewBuilder
@@ -166,5 +167,36 @@ struct MainWindowView: View {
                 .environmentObject(authManager)
                 .environmentObject(usageTracker)
         }
+    }
+}
+
+// MARK: - Sidebar Button
+
+private struct SidebarButton: View {
+    let item: SidebarItem
+    let isSelected: Bool
+    let action: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: NimbusLayout.spacing8) {
+                Image(systemName: item.icon)
+                    .font(NimbusFonts.body)
+                    .frame(width: 22)
+                Text(item.rawValue)
+                    .font(NimbusFonts.body)
+                Spacer()
+            }
+            .padding(.horizontal, NimbusLayout.spacing12)
+            .padding(.vertical, NimbusLayout.spacing8)
+            .background(
+                RoundedRectangle(cornerRadius: NimbusLayout.buttonSmallRadius)
+                    .fill(isSelected ? NimbusColors.indigo.opacity(0.12) : (isHovering ? NimbusColors.heading.opacity(0.06) : Color.clear))
+            )
+            .foregroundColor(isSelected ? NimbusColors.indigo : NimbusColors.heading)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in isHovering = hovering }
     }
 }

@@ -79,11 +79,11 @@ struct UpgradeView: View {
                 Text("")
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text("Free")
-                    .font(.caption.weight(.bold))
+                    .font(NimbusFonts.caption.weight(.bold))
                     .foregroundColor(NimbusColors.muted)
                     .frame(width: 80)
                 Text("Pro")
-                    .font(.caption.weight(.bold))
+                    .font(NimbusFonts.caption.weight(.bold))
                     .foregroundColor(.white)
                     .frame(width: 80)
                     .padding(.vertical, 5)
@@ -121,7 +121,7 @@ struct UpgradeView: View {
     private func comparisonRow(feature: String, free: String, pro: String) -> some View {
         HStack(spacing: 0) {
             Text(feature)
-                .font(.callout)
+                .font(NimbusFonts.body)
                 .foregroundColor(NimbusColors.heading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -139,15 +139,15 @@ struct UpgradeView: View {
     private func comparisonCell(value: String, isPro: Bool) -> some View {
         if value == "checkmark" {
             Image(systemName: "checkmark")
-                .font(.caption.weight(.bold))
+                .font(NimbusFonts.caption.weight(.bold))
                 .foregroundColor(isPro ? NimbusColors.indigo : NimbusColors.ready)
         } else if value == "xmark" {
             Image(systemName: "minus")
-                .font(.caption)
+                .font(NimbusFonts.caption)
                 .foregroundColor(NimbusColors.muted.opacity(0.5))
         } else {
             Text(value)
-                .font(.callout.weight(isPro ? .semibold : .regular))
+                .font(isPro ? NimbusFonts.bodyMedium : NimbusFonts.body)
                 .foregroundColor(isPro ? NimbusColors.indigo : NimbusColors.muted)
         }
     }
@@ -195,7 +195,7 @@ struct UpgradeView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(title)
-                            .font(.callout.weight(.semibold))
+                            .font(NimbusFonts.bodyMedium)
                             .foregroundColor(NimbusColors.heading)
                         if let badge {
                             Text(badge)
@@ -255,7 +255,7 @@ struct UpgradeView: View {
                             .tint(.white)
                     }
                     Text(isLoading ? "Opening checkout..." : selectedPlan == .monthly ? "Start Pro — $0.99 for your first month" : "Start Pro — $36/year (save 40%)")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(NimbusFonts.sectionHeader)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13)
@@ -271,7 +271,7 @@ struct UpgradeView: View {
             HStack(spacing: 12) {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.shield.fill")
-                        .font(.caption2)
+                        .font(NimbusFonts.small)
                         .foregroundColor(NimbusColors.ready)
                     Text("7-day money-back guarantee")
                         .font(NimbusFonts.small)
@@ -279,7 +279,7 @@ struct UpgradeView: View {
                 }
                 HStack(spacing: 4) {
                     Image(systemName: "bolt.fill")
-                        .font(.caption2)
+                        .font(NimbusFonts.small)
                         .foregroundColor(NimbusColors.processing)
                     Text("Cancel anytime")
                         .font(NimbusFonts.small)
